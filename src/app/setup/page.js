@@ -98,8 +98,8 @@ export default function SetupPage() {
     formData.phone.trim();
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-16">
-      <div className="w-full max-w-5xl grid lg:grid-cols-2 gap-0 overflow-hidden rounded-3xl glass-panel glow-border">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-8 sm:py-16">
+      <div className="w-full max-w-5xl grid lg:grid-cols-2 gap-0 overflow-hidden rounded-2xl sm:rounded-3xl glass-panel glow-border">
 
         {/* Left — Branding Panel */}
         <div className="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-sapphire-800/80 to-sapphire-900/80 relative overflow-hidden">
@@ -134,7 +134,7 @@ export default function SetupPage() {
         </div>
 
         {/* Right — Form Panel */}
-        <div className="p-8 sm:p-12">
+        <div className="p-6 sm:p-12">
           {/* Mobile step indicator */}
           <div className="lg:hidden flex items-center gap-3 mb-6">
             <div className="flex items-center gap-1.5">
@@ -144,9 +144,9 @@ export default function SetupPage() {
             <span className="text-sapphire-500 text-sm">Step 2 of 2</span>
           </div>
 
-          <div className="mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">Personal Information</h2>
-            <p className="text-sapphire-400">Tell us a bit about yourself so we can set up your profile.</p>
+          <div className="mb-6 sm:mb-8">
+            <h2 className="text-xl sm:text-3xl font-bold text-white mb-2">Personal Information</h2>
+            <p className="text-sapphire-400 text-sm sm:text-base">Tell us a bit about yourself so we can set up your profile.</p>
           </div>
 
           {error && (

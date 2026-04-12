@@ -8,9 +8,9 @@ export function SkeletonCircle({ className = '' }) {
 
 export function SkeletonCard() {
   return (
-    <div className="glass-panel rounded-2xl p-6 space-y-4">
-      <div className="flex items-center gap-4">
-        <SkeletonCircle className="w-12 h-12" />
+    <div className="glass-panel rounded-2xl p-4 sm:p-6 space-y-4">
+      <div className="flex items-center gap-3 sm:gap-4">
+        <SkeletonCircle className="w-10 h-10 sm:w-12 sm:h-12" />
         <div className="flex-1 space-y-2">
           <SkeletonLine className="w-1/3" />
           <SkeletonLine className="w-1/5 h-3" />
@@ -25,7 +25,7 @@ export function SkeletonCard() {
 
 export function FeedSkeleton({ count = 3 }) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {Array.from({ length: count }).map((_, i) => (
         <SkeletonCard key={i} />
       ))}
@@ -35,14 +35,14 @@ export function FeedSkeleton({ count = 3 }) {
 
 export function ProfileSkeleton() {
   return (
-    <div className="glass-panel rounded-2xl p-8 flex flex-col items-center space-y-4">
-      <SkeletonCircle className="w-24 h-24" />
-      <SkeletonLine className="w-40 h-6" />
-      <SkeletonLine className="w-28 h-4" />
+    <div className="glass-panel rounded-2xl p-6 sm:p-8 flex flex-col items-center space-y-4">
+      <SkeletonCircle className="w-20 h-20 sm:w-24 sm:h-24" />
+      <SkeletonLine className="w-32 sm:w-40 h-5 sm:h-6" />
+      <SkeletonLine className="w-24 sm:w-28 h-3 sm:h-4" />
       <div className="w-full space-y-3 mt-4">
-        <SkeletonLine className="w-full h-12" />
-        <SkeletonLine className="w-full h-12" />
-        <SkeletonLine className="w-full h-12" />
+        <SkeletonLine className="w-full h-10 sm:h-12" />
+        <SkeletonLine className="w-full h-10 sm:h-12" />
+        <SkeletonLine className="w-full h-10 sm:h-12" />
       </div>
     </div>
   );
@@ -50,15 +50,15 @@ export function ProfileSkeleton() {
 
 export function ConnectionSkeleton({ count = 4 }) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="glass-panel rounded-2xl p-5 flex items-center gap-4">
-          <SkeletonCircle className="w-12 h-12" />
+        <div key={i} className="glass-panel rounded-2xl p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
+          <SkeletonCircle className="w-10 h-10 sm:w-12 sm:h-12" />
           <div className="flex-1 space-y-2">
             <SkeletonLine className="w-1/3" />
             <SkeletonLine className="w-1/4 h-3" />
           </div>
-          <div className="skeleton w-20 h-9 rounded-xl" />
+          <div className="skeleton w-16 sm:w-20 h-8 sm:h-9 rounded-xl" />
         </div>
       ))}
     </div>

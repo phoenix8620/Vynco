@@ -4,23 +4,23 @@ import { Zap, Globe, MessageCircle, ExternalLink } from 'lucide-react';
 export default function Footer() {
   return (
     <footer className="border-t border-white/[0.06] bg-sapphire-950/80 backdrop-blur-md">
-      <div className="section-container py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+      <div className="section-container py-10 sm:py-16">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12 mb-10 sm:mb-12">
           {/* Brand */}
-          <div className="md:col-span-1">
+          <div className="col-span-2 sm:col-span-2 md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
               <img src="/logo.png" alt="Logo" className="w-10 h-10 rounded-xl" />
               <span className="text-xl font-bold tracking-tight text-white">Vynco</span>
             </Link>
-            <p className="text-sapphire-400 text-sm leading-relaxed">
+            <p className="text-sapphire-400 text-sm leading-relaxed max-w-xs">
               The future of professional networking. Share your digital business card instantly with a single scan.
             </p>
           </div>
 
           {/* Product */}
           <div>
-            <h4 className="text-white font-semibold text-sm mb-4 uppercase tracking-wider">Product</h4>
-            <ul className="space-y-3">
+            <h4 className="text-white font-semibold text-sm mb-3 sm:mb-4 uppercase tracking-wider">Product</h4>
+            <ul className="space-y-2.5 sm:space-y-3">
               <li><Link href="/#features" className="text-sapphire-400 text-sm hover:text-cyan-neon transition-colors">Features</Link></li>
               <li><Link href="/#how-it-works" className="text-sapphire-400 text-sm hover:text-cyan-neon transition-colors">How it Works</Link></li>
               <li><Link href="/auth" className="text-sapphire-400 text-sm hover:text-cyan-neon transition-colors">Sign Up</Link></li>
@@ -29,8 +29,8 @@ export default function Footer() {
 
           {/* Company */}
           <div>
-            <h4 className="text-white font-semibold text-sm mb-4 uppercase tracking-wider">Company</h4>
-            <ul className="space-y-3">
+            <h4 className="text-white font-semibold text-sm mb-3 sm:mb-4 uppercase tracking-wider">Company</h4>
+            <ul className="space-y-2.5 sm:space-y-3">
               <li><Link href="#" className="text-sapphire-400 text-sm hover:text-cyan-neon transition-colors">About</Link></li>
               <li><Link href="#" className="text-sapphire-400 text-sm hover:text-cyan-neon transition-colors">Careers</Link></li>
               <li><Link href="#" className="text-sapphire-400 text-sm hover:text-cyan-neon transition-colors">Blog</Link></li>
@@ -38,9 +38,9 @@ export default function Footer() {
           </div>
 
           {/* Legal */}
-          <div>
-            <h4 className="text-white font-semibold text-sm mb-4 uppercase tracking-wider">Legal</h4>
-            <ul className="space-y-3">
+          <div className="col-span-2 sm:col-span-1">
+            <h4 className="text-white font-semibold text-sm mb-3 sm:mb-4 uppercase tracking-wider">Legal</h4>
+            <ul className="space-y-2.5 sm:space-y-3">
               <li><Link href="#" className="text-sapphire-400 text-sm hover:text-cyan-neon transition-colors">Privacy Policy</Link></li>
               <li><Link href="#" className="text-sapphire-400 text-sm hover:text-cyan-neon transition-colors">Terms of Service</Link></li>
               <li><Link href="#" className="text-sapphire-400 text-sm hover:text-cyan-neon transition-colors">Cookie Policy</Link></li>
@@ -49,12 +49,12 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-white/[0.06] pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-sapphire-500 text-sm">&copy; {new Date().getFullYear()} Vynco. All rights reserved.</p>
-          <div className="flex items-center gap-4">
-            <a href="#" className="text-sapphire-500 hover:text-cyan-neon transition-colors"><MessageCircle className="w-5 h-5" /></a>
-            <a href="#" className="text-sapphire-500 hover:text-cyan-neon transition-colors"><ExternalLink className="w-5 h-5" /></a>
-            <a href="#" className="text-sapphire-500 hover:text-cyan-neon transition-colors"><Globe className="w-5 h-5" /></a>
+        <div className="border-t border-white/[0.06] pt-6 sm:pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <p className="text-sapphire-500 text-xs sm:text-sm">&copy; {new Date().getFullYear()} Vynco. All rights reserved.</p>
+          <div className="flex items-center gap-5">
+            <a href="#" className="text-sapphire-500 hover:text-cyan-neon transition-colors p-1"><MessageCircle className="w-5 h-5" /></a>
+            <a href="#" className="text-sapphire-500 hover:text-cyan-neon transition-colors p-1"><ExternalLink className="w-5 h-5" /></a>
+            <a href="#" className="text-sapphire-500 hover:text-cyan-neon transition-colors p-1"><Globe className="w-5 h-5" /></a>
           </div>
         </div>
       </div>

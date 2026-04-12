@@ -57,16 +57,16 @@ export default function LandingPage() {
     <div className="relative overflow-hidden">
 
       {/* ════════ HERO ════════ */}
-      <section className="relative min-h-[90vh] flex items-center">
+      <section className="relative min-h-[85vh] sm:min-h-[90vh] flex items-center">
         {/* Background orbs */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-1/4 w-[500px] h-[500px] bg-cyan-neon/[0.07] rounded-full blur-[120px] animate-pulse-glow" />
-          <div className="absolute bottom-20 right-1/4 w-[400px] h-[400px] bg-cyan-dark/[0.1] rounded-full blur-[100px] animate-float-delayed" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-sapphire-700/20 rounded-full blur-[150px]" />
+          <div className="absolute top-20 left-1/4 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-cyan-neon/[0.07] rounded-full blur-[80px] sm:blur-[120px] animate-pulse-glow" />
+          <div className="absolute bottom-20 right-1/4 w-[250px] sm:w-[400px] h-[250px] sm:h-[400px] bg-cyan-dark/[0.1] rounded-full blur-[80px] sm:blur-[100px] animate-float-delayed" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] sm:w-[600px] h-[350px] sm:h-[600px] bg-sapphire-700/20 rounded-full blur-[100px] sm:blur-[150px]" />
         </div>
 
-        <div className="section-container relative z-10 py-24 lg:py-32">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+        <div className="section-container relative z-10 py-16 sm:py-24 lg:py-32">
+          <div className="grid lg:grid-cols-2 gap-10 sm:gap-16 items-center">
             {/* Left content */}
             <div>
               <motion.div
@@ -74,9 +74,9 @@ export default function LandingPage() {
                 animate="visible"
                 variants={fadeUp}
                 custom={0}
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-cyan-neon/20 bg-cyan-neon/[0.06] text-cyan-neon text-sm font-medium mb-8"
+                className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full border border-cyan-neon/20 bg-cyan-neon/[0.06] text-cyan-neon text-xs sm:text-sm font-medium mb-6 sm:mb-8"
               >
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 Now in Public Beta
               </motion.div>
 
@@ -85,7 +85,7 @@ export default function LandingPage() {
                 animate="visible"
                 variants={fadeUp}
                 custom={1}
-                className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6"
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-5 sm:mb-6"
               >
                 Your Network,{' '}
                 <span className="text-gradient">Reinvented.</span>
@@ -96,7 +96,7 @@ export default function LandingPage() {
                 animate="visible"
                 variants={fadeUp}
                 custom={2}
-                className="text-lg sm:text-xl text-sapphire-400 leading-relaxed max-w-lg mb-10"
+                className="text-base sm:text-lg md:text-xl text-sapphire-400 leading-relaxed max-w-lg mb-8 sm:mb-10"
               >
                 Ditch the paper. Vynco transforms how professionals connect with
                 instant QR digital business cards, smart networking, and real-time
@@ -108,18 +108,18 @@ export default function LandingPage() {
                 animate="visible"
                 variants={fadeUp}
                 custom={3}
-                className="flex flex-wrap gap-4"
+                className="flex flex-col sm:flex-row gap-3 sm:gap-4"
               >
                 <Link
                   href="/auth"
-                  className="group px-8 py-3.5 text-base font-semibold rounded-2xl bg-gradient-to-r from-cyan-dark to-cyan-neon text-sapphire-900 shadow-[0_0_25px_rgba(0,229,255,0.3)] hover:shadow-[0_0_40px_rgba(0,229,255,0.5)] transition-all flex items-center gap-2"
+                  className="group px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-semibold rounded-2xl bg-gradient-to-r from-cyan-dark to-cyan-neon text-sapphire-900 shadow-[0_0_25px_rgba(0,229,255,0.3)] hover:shadow-[0_0_40px_rgba(0,229,255,0.5)] transition-all flex items-center justify-center gap-2"
                 >
                   Get Started Free
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
                 <Link
                   href="/#features"
-                  className="px-8 py-3.5 text-base font-semibold rounded-2xl border border-sapphire-600 text-sapphire-400 hover:text-white hover:border-sapphire-500 transition-all"
+                  className="px-6 sm:px-8 py-3 sm:py-3.5 text-sm sm:text-base font-semibold rounded-2xl border border-sapphire-600 text-sapphire-400 hover:text-white hover:border-sapphire-500 transition-all text-center"
                 >
                   Learn More
                 </Link>
@@ -131,7 +131,7 @@ export default function LandingPage() {
                 animate="visible"
                 variants={fadeUp}
                 custom={4}
-                className="flex gap-10 mt-14 pt-8 border-t border-white/[0.06]"
+                className="flex gap-6 sm:gap-10 mt-10 sm:mt-14 pt-6 sm:pt-8 border-t border-white/[0.06]"
               >
                 {[
                   { value: '10K+', label: 'Professionals' },
@@ -139,8 +139,8 @@ export default function LandingPage() {
                   { value: '99.9%', label: 'Uptime' },
                 ].map((stat) => (
                   <div key={stat.label}>
-                    <div className="text-2xl font-bold text-white">{stat.value}</div>
-                    <div className="text-sm text-sapphire-500">{stat.label}</div>
+                    <div className="text-xl sm:text-2xl font-bold text-white">{stat.value}</div>
+                    <div className="text-xs sm:text-sm text-sapphire-500">{stat.label}</div>
                   </div>
                 ))}
               </motion.div>
@@ -189,7 +189,7 @@ export default function LandingPage() {
 
 
       {/* ════════ FEATURES ════════ */}
-      <section id="features" className="py-24 lg:py-32 relative">
+      <section id="features" className="py-16 sm:py-24 lg:py-32 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-sapphire-900/50 to-transparent pointer-events-none" />
         <div className="section-container relative z-10">
           <motion.div
@@ -197,19 +197,19 @@ export default function LandingPage() {
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
             variants={fadeUp}
-            className="text-center mb-16"
+            className="text-center mb-10 sm:mb-16"
           >
-            <span className="text-cyan-neon text-sm font-semibold uppercase tracking-widest">Features</span>
-            <h2 className="text-4xl sm:text-5xl font-bold text-white mt-3 mb-4">
+            <span className="text-cyan-neon text-xs sm:text-sm font-semibold uppercase tracking-widest">Features</span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mt-3 mb-4">
               Everything you need to{' '}
               <span className="text-gradient">network smarter</span>
             </h2>
-            <p className="text-sapphire-400 text-lg max-w-2xl mx-auto">
+            <p className="text-sapphire-400 text-base sm:text-lg max-w-2xl mx-auto">
               Vynco combines the best of digital identity, real-time communication, and professional discovery into one seamless platform.
             </p>
           </motion.div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {features.map((feature, i) => {
               const Icon = feature.icon;
               return (
@@ -220,12 +220,12 @@ export default function LandingPage() {
                   viewport={{ once: true, margin: "-50px" }}
                   variants={fadeUp}
                   custom={i}
-                  className="group glass-panel rounded-2xl p-7 hover:border-cyan-neon/20 hover:shadow-[0_0_30px_rgba(0,229,255,0.05)] transition-all duration-500"
+                  className="group glass-panel rounded-2xl p-5 sm:p-7 hover:border-cyan-neon/20 hover:shadow-[0_0_30px_rgba(0,229,255,0.05)] transition-all duration-500"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-cyan-neon/[0.08] flex items-center justify-center mb-5 group-hover:bg-cyan-neon/[0.15] transition-colors">
-                    <Icon className="w-6 h-6 text-cyan-neon" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-cyan-neon/[0.08] flex items-center justify-center mb-4 sm:mb-5 group-hover:bg-cyan-neon/[0.15] transition-colors">
+                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-neon" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
+                  <h3 className="text-base sm:text-lg font-semibold text-white mb-2">{feature.title}</h3>
                   <p className="text-sapphire-400 text-sm leading-relaxed">{feature.description}</p>
                 </motion.div>
               );
@@ -236,23 +236,23 @@ export default function LandingPage() {
 
 
       {/* ════════ HOW IT WORKS ════════ */}
-      <section id="how-it-works" className="py-24 lg:py-32">
+      <section id="how-it-works" className="py-16 sm:py-24 lg:py-32">
         <div className="section-container">
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
             variants={fadeUp}
-            className="text-center mb-16"
+            className="text-center mb-10 sm:mb-16"
           >
-            <span className="text-cyan-neon text-sm font-semibold uppercase tracking-widest">How it works</span>
-            <h2 className="text-4xl sm:text-5xl font-bold text-white mt-3 mb-4">
+            <span className="text-cyan-neon text-xs sm:text-sm font-semibold uppercase tracking-widest">How it works</span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mt-3 mb-4">
               Three steps to your{' '}
               <span className="text-gradient">digital identity</span>
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-8">
             {steps.map((step, i) => (
               <motion.div
                 key={step.num}
@@ -266,9 +266,9 @@ export default function LandingPage() {
                 {i < steps.length - 1 && (
                   <div className="hidden md:block absolute top-8 left-full w-full h-px bg-gradient-to-r from-sapphire-700 to-transparent z-0" />
                 )}
-                <div className="relative z-10 glass-panel rounded-2xl p-8 text-center">
-                  <div className="text-5xl font-black text-cyan-neon/15 mb-4">{step.num}</div>
-                  <h3 className="text-xl font-bold text-white mb-3">{step.title}</h3>
+                <div className="relative z-10 glass-panel rounded-2xl p-6 sm:p-8 text-center">
+                  <div className="text-4xl sm:text-5xl font-black text-cyan-neon/15 mb-3 sm:mb-4">{step.num}</div>
+                  <h3 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3">{step.title}</h3>
                   <p className="text-sapphire-400 text-sm leading-relaxed">{step.description}</p>
                 </div>
               </motion.div>
@@ -279,26 +279,26 @@ export default function LandingPage() {
 
 
       {/* ════════ CTA ════════ */}
-      <section className="py-24 lg:py-32">
+      <section className="py-16 sm:py-24 lg:py-32">
         <div className="section-container">
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
             variants={fadeUp}
-            className="relative overflow-hidden rounded-3xl glass-panel glow-border p-12 sm:p-16 text-center"
+            className="relative overflow-hidden rounded-2xl sm:rounded-3xl glass-panel glow-border p-8 sm:p-12 md:p-16 text-center"
           >
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-cyan-neon/[0.08] rounded-full blur-[100px]" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] sm:w-[500px] h-[200px] sm:h-[300px] bg-cyan-neon/[0.08] rounded-full blur-[80px] sm:blur-[100px]" />
             <div className="relative z-10">
-              <h2 className="text-4xl sm:text-5xl font-bold text-white mb-5">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-5">
                 Ready to transform your networking?
               </h2>
-              <p className="text-sapphire-400 text-lg max-w-xl mx-auto mb-10">
+              <p className="text-sapphire-400 text-base sm:text-lg max-w-xl mx-auto mb-8 sm:mb-10">
                 Join thousands of professionals who have already ditched paper business cards and embraced the future of networking.
               </p>
               <Link
                 href="/auth"
-                className="inline-flex items-center gap-2 px-10 py-4 text-base font-semibold rounded-2xl bg-gradient-to-r from-cyan-dark to-cyan-neon text-sapphire-900 shadow-[0_0_25px_rgba(0,229,255,0.3)] hover:shadow-[0_0_40px_rgba(0,229,255,0.5)] transition-all"
+                className="inline-flex items-center gap-2 px-8 sm:px-10 py-3.5 sm:py-4 text-sm sm:text-base font-semibold rounded-2xl bg-gradient-to-r from-cyan-dark to-cyan-neon text-sapphire-900 shadow-[0_0_25px_rgba(0,229,255,0.3)] hover:shadow-[0_0_40px_rgba(0,229,255,0.5)] transition-all"
               >
                 Get Started — It&apos;s Free
                 <ArrowRight className="w-5 h-5" />

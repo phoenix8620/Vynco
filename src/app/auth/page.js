@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
+import { useAuth } from '@/context/AuthContext';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Mail, Lock, Globe, Zap, ArrowRight } from 'lucide-react';
@@ -17,15 +18,22 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
 
-  const checkProfileAndRedirect = async (uid) => {
+  const checkProfileAndRedirect = useCallback(async (uid) => {
     const snap = await getDoc(doc(db, 'users', uid));
     if (snap.exists() && snap.data().isOnboarded) {
       router.push('/dashboard');
     } else {
       router.push('/setup');
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      checkProfileAndRedirect(user.uid);
+    }
+  }, [authLoading, user, checkProfileAndRedirect]);
 
   const handleEmailAuth = async (e) => {
     e.preventDefault();
@@ -61,8 +69,8 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-16">
-      <div className="w-full max-w-5xl grid lg:grid-cols-2 gap-0 overflow-hidden rounded-3xl glass-panel glow-border">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-8 sm:py-16">
+      <div className="w-full max-w-5xl grid lg:grid-cols-2 gap-0 overflow-hidden rounded-2xl sm:rounded-3xl glass-panel glow-border">
 
         {/* Left — Branding Panel */}
         <div className="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-sapphire-800/80 to-sapphire-900/80 relative overflow-hidden">
@@ -101,7 +109,7 @@ export default function AuthPage() {
         </div>
 
         {/* Right — Form Panel */}
-        <div className="p-8 sm:p-12">
+        <div className="p-6 sm:p-12">
           {/* Mobile step indicator for signup */}
           {!isLogin && (
             <div className="lg:hidden flex items-center gap-3 mb-6">
@@ -113,11 +121,11 @@ export default function AuthPage() {
             </div>
           )}
 
-          <div className="mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+          <div className="mb-6 sm:mb-8">
+            <h2 className="text-xl sm:text-3xl font-bold text-white mb-2">
               {isLogin ? 'Sign In' : 'Create Account'}
             </h2>
-            <p className="text-sapphire-400">
+            <p className="text-sapphire-400 text-sm sm:text-base">
               {isLogin ? 'Enter your credentials to continue' : 'Fill in your email and password to get started'}
             </p>
           </div>

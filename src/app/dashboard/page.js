@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { FAB } from '@/components/ui/FAB';
@@ -11,6 +11,14 @@ import { QrCode, Mail, Phone, Building2, UserCircle, ThumbsUp, MessageCircle, Sh
 import QRCode from 'react-qr-code';
 
 export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="section-container py-10"><FeedSkeleton count={3} /></div>}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+function DashboardContent() {
   const { user, profile, loading } = useAuth();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('feed');
@@ -29,6 +37,7 @@ export default function DashboardPage() {
   const [showScannedCardModal, setShowScannedCardModal] = useState(false);
   const [sendingScannedRequest, setSendingScannedRequest] = useState(false);
   const [sentRequestIds, setSentRequestIds] = useState(new Set());
+  const [cardActionMessage, setCardActionMessage] = useState('');
 
   useEffect(() => {
     const tab = searchParams.get('tab');
@@ -299,42 +308,128 @@ export default function DashboardPage() {
     }
   };
 
+  const buildCardUrl = () => {
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://vynco.app';
+    return profile?.username ? `${baseUrl}/${profile.username}` : `${baseUrl}/dashboard?tab=card`;
+  };
+
+  const showCardMessage = (message) => {
+    setCardActionMessage(message);
+    window.setTimeout(() => setCardActionMessage(''), 2200);
+  };
+
+  const handleShareCard = async () => {
+    const fullName = profile?.fullName || profile?.name || 'Vynco User';
+    const cardUrl = buildCardUrl();
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `${fullName} | Vynco Digital Card`,
+          text: `Connect with ${fullName} on Vynco.`,
+          url: cardUrl,
+        });
+        showCardMessage('Card shared successfully.');
+        return;
+      }
+
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(cardUrl);
+        showCardMessage('Card link copied to clipboard.');
+        return;
+      }
+
+      showCardMessage('Sharing is not supported on this browser.');
+    } catch (err) {
+      if (err?.name !== 'AbortError') {
+        console.error('Failed to share digital card:', err);
+        showCardMessage('Could not share card right now.');
+      }
+    }
+  };
+
+  const handleDownloadVCard = () => {
+    const escapeVCardValue = (value = '') => String(value)
+      .replace(/\\/g, '\\\\')
+      .replace(/\n/g, '\\n')
+      .replace(/,/g, '\\,')
+      .replace(/;/g, '\\;');
+
+    const fullName = profile?.fullName || profile?.name || 'Vynco User';
+    const nameParts = fullName.trim().split(/\s+/);
+    const firstName = nameParts.shift() || '';
+    const lastName = nameParts.join(' ');
+    const organization = profile?.organization || profile?.company || '';
+    const title = profile?.jobTitle || '';
+    const email = profile?.email || '';
+    const phone = profile?.phone || '';
+    const linkedin = profile?.linkedinProfile || '';
+    const cardUrl = buildCardUrl();
+
+    const vCardLines = [
+      'BEGIN:VCARD',
+      'VERSION:3.0',
+      `N:${escapeVCardValue(lastName)};${escapeVCardValue(firstName)};;;`,
+      `FN:${escapeVCardValue(fullName)}`,
+      organization ? `ORG:${escapeVCardValue(organization)}` : '',
+      title ? `TITLE:${escapeVCardValue(title)}` : '',
+      phone ? `TEL;TYPE=CELL:${escapeVCardValue(phone)}` : '',
+      email ? `EMAIL;TYPE=INTERNET:${escapeVCardValue(email)}` : '',
+      `URL:${escapeVCardValue(cardUrl)}`,
+      linkedin ? `NOTE:${escapeVCardValue(`LinkedIn: ${linkedin}`)}` : '',
+      'END:VCARD',
+    ].filter(Boolean);
+
+    const blob = new Blob([`${vCardLines.join('\r\n')}\r\n`], { type: 'text/vcard;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const slugBase = (profile?.username || fullName || 'vynco-card').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    a.href = url;
+    a.download = `${slugBase || 'vynco-card'}.vcf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showCardMessage('vCard downloaded.');
+  };
+
   const scannedRequestAlreadySent = !!scannedProfile && sentRequestIds.has(scannedProfile.id);
 
   return (
-    <div className="section-container py-10">
+    <div className="section-container py-6 sm:py-10">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-white">
+      <div className="flex flex-col gap-4 mb-8 sm:mb-10">
+        <div className="flex items-start sm:items-center justify-between gap-3">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white leading-tight">
             Welcome back, <span className="text-gradient">{profile?.fullName || profile?.name || 'User'}</span>
           </h1>
-          <p className="text-sapphire-400 mt-1">Manage your feed and digital business card</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setShowScannerModal(true)}
-            className="px-4 py-2.5 rounded-xl text-sm font-semibold border border-cyan-neon/30 text-cyan-neon hover:bg-cyan-neon/10 transition-all flex items-center gap-2"
-          >
-            <ScanLine className="w-4 h-4" /> Scan Card
-          </button>
-          <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-cyan-neon/30 bg-sapphire-700 flex items-center justify-center text-white font-bold text-lg shadow-[0_0_15px_rgba(0,229,255,0.1)]">
-            {profile?.fullName ? profile.fullName.charAt(0).toUpperCase() : profile?.name ? profile.name.charAt(0).toUpperCase() : <UserCircle className="w-7 h-7" />}
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <button
+              type="button"
+              onClick={() => setShowScannerModal(true)}
+              className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-cyan-neon/30 text-cyan-neon hover:bg-cyan-neon/10 transition-all flex items-center gap-1.5 sm:gap-2"
+            >
+              <ScanLine className="w-4 h-4" />
+              <span className="hidden sm:inline">Scan Card</span>
+              <span className="sm:hidden">Scan</span>
+            </button>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-cyan-neon/30 bg-sapphire-700 flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-[0_0_15px_rgba(0,229,255,0.1)]">
+              {profile?.fullName ? profile.fullName.charAt(0).toUpperCase() : profile?.name ? profile.name.charAt(0).toUpperCase() : <UserCircle className="w-6 h-6 sm:w-7 sm:h-7" />}
+            </div>
           </div>
         </div>
+        <p className="text-sapphire-400 text-sm sm:text-base">Manage your feed and digital business card</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex bg-sapphire-800/30 rounded-xl p-1.5 mb-8 border border-white/[0.04] w-full sm:w-fit">
+      <div className="flex bg-sapphire-800/30 rounded-xl p-1.5 mb-6 sm:mb-8 border border-white/[0.04] w-full sm:w-fit">
         {['feed', 'card'].map((tab) => (
           <button
             key={tab}
-            className={`px-6 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 ${
-              activeTab === tab
+            className={`flex-1 sm:flex-none px-5 sm:px-6 py-2.5 text-sm font-semibold rounded-lg transition-all duration-300 ${activeTab === tab
                 ? 'bg-gradient-to-r from-cyan-dark to-cyan-neon text-sapphire-900 shadow-[0_0_20px_rgba(0,229,255,0.15)]'
                 : 'text-sapphire-400 hover:text-white'
-            }`}
+              }`}
             onClick={() => setActiveTab(tab)}
           >
             {tab === 'feed' ? 'Networking Feed' : 'Digital Card'}
@@ -347,21 +442,21 @@ export default function DashboardPage() {
 
         {/* Feed Tab */}
         {activeTab === 'feed' && (
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Main Feed */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-4 sm:space-y-6">
               {feedLoading ? (
                 <FeedSkeleton count={3} />
               ) : posts.length === 0 ? (
-                <div className="glass-panel rounded-2xl p-12 text-center">
-                  <p className="text-sapphire-400 text-lg mb-2">No posts yet</p>
+                <div className="glass-panel rounded-2xl p-8 sm:p-12 text-center">
+                  <p className="text-sapphire-400 text-base sm:text-lg mb-2">No posts yet</p>
                   <p className="text-sapphire-500 text-sm">Be the first to share something with your network!</p>
                 </div>
               ) : (
                 posts.map(post => (
-                  <div key={post.id} className="glass-panel rounded-2xl p-6 hover:border-white/[0.1] transition-all">
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="w-11 h-11 rounded-full bg-gradient-to-br from-sapphire-600 to-sapphire-800 flex items-center justify-center text-white font-bold border border-white/[0.06] overflow-hidden">
+                  <div key={post.id} className="glass-panel rounded-2xl p-4 sm:p-6 hover:border-white/[0.1] transition-all">
+                    <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-sapphire-600 to-sapphire-800 flex items-center justify-center text-white font-bold border border-white/[0.06] overflow-hidden flex-shrink-0">
                         {post.authorPhoto ? (
                           <img src={post.authorPhoto} alt="" className="w-full h-full object-cover" />
                         ) : (
@@ -369,7 +464,7 @@ export default function DashboardPage() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-white font-semibold">{post.authorName || 'Unknown'}</h4>
+                        <h4 className="text-white font-semibold text-sm sm:text-base">{post.authorName || 'Unknown'}</h4>
                         <p className="text-sapphire-500 text-xs">
                           {post.visibility === 'connections' ? 'Connections only' : 'Public'}
                           {' '}&middot;{' '}
@@ -378,26 +473,26 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    <p className="text-sapphire-400 leading-relaxed mb-3">{post.content}</p>
+                    <p className="text-sapphire-400 text-sm sm:text-base leading-relaxed mb-3">{post.content}</p>
 
                     {post.imageUrl && (
                       <div className="rounded-xl overflow-hidden mb-4">
-                        <img src={post.imageUrl} alt="" className="w-full object-cover max-h-96" />
+                        <img src={post.imageUrl} alt="" className="w-full object-cover max-h-72 sm:max-h-96" />
                       </div>
                     )}
 
-                    <div className="flex items-center gap-6 pt-4 border-t border-white/[0.04]">
+                    <div className="flex items-center gap-4 sm:gap-6 pt-3 sm:pt-4 border-t border-white/[0.04]">
                       <button
                         onClick={() => handleLike(post.id)}
-                        className="flex items-center gap-2 text-sapphire-500 hover:text-cyan-neon text-sm transition-colors"
+                        className="flex items-center gap-1.5 sm:gap-2 text-sapphire-500 hover:text-cyan-neon text-sm transition-colors"
                       >
                         <ThumbsUp className="w-4 h-4" /> {post.likes || 0}
                       </button>
-                      <button className="flex items-center gap-2 text-sapphire-500 hover:text-cyan-neon text-sm transition-colors">
+                      <button className="flex items-center gap-1.5 sm:gap-2 text-sapphire-500 hover:text-cyan-neon text-sm transition-colors">
                         <MessageCircle className="w-4 h-4" /> {post.comments || 0}
                       </button>
-                      <button className="flex items-center gap-2 text-sapphire-500 hover:text-cyan-neon text-sm transition-colors ml-auto">
-                        <Share2 className="w-4 h-4" /> Share
+                      <button className="flex items-center gap-1.5 sm:gap-2 text-sapphire-500 hover:text-cyan-neon text-sm transition-colors ml-auto">
+                        <Share2 className="w-4 h-4" /> <span className="hidden sm:inline">Share</span>
                       </button>
                     </div>
                   </div>
@@ -444,52 +539,76 @@ export default function DashboardPage() {
 
         {/* Digital Card Tab */}
         {activeTab === 'card' && (
-          <div className="flex justify-center py-8">
+          <div className="flex justify-center py-4 sm:py-8">
             {loading ? (
               <div className="w-full max-w-md">
                 <ProfileSkeleton />
               </div>
             ) : (
-              <div className="relative">
+              <div className="relative w-full max-w-md">
                 <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-cyan-neon/15 to-transparent blur-2xl scale-110" />
-                <div className="relative w-full max-w-md glass-panel p-10 rounded-[2rem] text-center glow-border">
+                <div className="relative w-full glass-panel p-6 sm:p-10 rounded-[2rem] text-center glow-border">
                   <div className="absolute -top-6 -right-6 w-32 h-32 bg-cyan-neon/10 rounded-full blur-3xl" />
 
-                  <div className="w-24 h-24 bg-gradient-to-br from-sapphire-600 to-sapphire-800 rounded-full mx-auto mb-6 flex items-center justify-center border-2 border-cyan-neon/30 shadow-[0_0_20px_rgba(0,229,255,0.15)] overflow-hidden">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-sapphire-600 to-sapphire-800 rounded-full mx-auto mb-5 sm:mb-6 flex items-center justify-center border-2 border-cyan-neon/30 shadow-[0_0_20px_rgba(0,229,255,0.15)] overflow-hidden">
                     {profile?.photoURL ? (
                       <img src={profile.photoURL} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <QrCode className="w-10 h-10 text-cyan-neon" />
+                      <QrCode className="w-8 h-8 sm:w-10 sm:h-10 text-cyan-neon" />
                     )}
                   </div>
 
-                  <h2 className="text-2xl font-bold tracking-tight text-white mb-1">
+                  <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white mb-1">
                     {profile?.fullName || profile?.name || 'Your Name'}
                   </h2>
-                  <p className="text-cyan-dark mb-8 font-medium">@{profile?.username || 'username'}</p>
+                  <p className="text-cyan-dark mb-6 sm:mb-8 font-medium text-sm sm:text-base">@{profile?.username || 'username'}</p>
 
-                  <div className="bg-white p-5 rounded-2xl inline-block mx-auto shadow-[0_0_30px_rgba(0,229,255,0.1)] mb-8">
+                  <div className="bg-white p-4 sm:p-5 rounded-2xl inline-block mx-auto shadow-[0_0_30px_rgba(0,229,255,0.1)] mb-6 sm:mb-8">
                     <QRCode
                       value={profile?.username ? `vynco.app/${profile.username}` : "vynco.app/example"}
-                      size={160}
+                      size={140}
                       level="H"
                       bgColor="#ffffff"
                       fgColor="#0B1120"
+                      style={{ width: '100%', maxWidth: '160px', height: 'auto' }}
                     />
                   </div>
 
-                  <div className="space-y-3 text-left">
+                  <div className="space-y-2.5 sm:space-y-3 text-left">
                     {[
                       { icon: Building2, label: profile?.organization || profile?.company || 'Company / College' },
                       { icon: Mail, label: profile?.email || 'email@example.com' },
                       { icon: Phone, label: profile?.phone || 'Phone Number' },
                     ].map(({ icon: Icon, label }) => (
-                      <div key={label} className="flex items-center gap-4 text-sapphire-400 bg-sapphire-800/40 p-3.5 rounded-xl">
-                        <Icon className="text-cyan-neon w-5 h-5 flex-shrink-0" />
+                      <div key={label} className="flex items-center gap-3 sm:gap-4 text-sapphire-400 bg-sapphire-800/40 p-3 sm:p-3.5 rounded-xl">
+                        <Icon className="text-cyan-neon w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                         <span className="truncate text-sm">{label}</span>
                       </div>
                     ))}
                   </div>
+
+                  <div className="mt-6 sm:mt-7 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={handleShareCard}
+                      className="w-full py-2.5 sm:py-3 rounded-xl text-sm font-semibold border border-cyan-neon/30 text-cyan-neon hover:bg-cyan-neon/10 transition-all flex items-center justify-center gap-2"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      Share Card
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDownloadVCard}
+                      className="w-full py-2.5 sm:py-3 rounded-xl text-sm font-semibold bg-gradient-to-r from-cyan-dark to-cyan-neon text-sapphire-900 shadow-[0_0_20px_rgba(0,229,255,0.2)] hover:shadow-[0_0_30px_rgba(0,229,255,0.4)] transition-all flex items-center justify-center gap-2"
+                    >
+                      <Link2 className="w-4 h-4" />
+                      Download vCard
+                    </button>
+                  </div>
+
+                  {!!cardActionMessage && (
+                    <p className="mt-3 text-xs text-cyan-neon text-center">{cardActionMessage}</p>
+                  )}
                 </div>
               </div>
             )}
@@ -501,21 +620,21 @@ export default function DashboardPage() {
 
       {showScannerModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4" onClick={closeScannerModal}>
-          <div className="glass-panel rounded-2xl p-8 w-full max-w-xl glow-border relative" onClick={(e) => e.stopPropagation()}>
+          <div className="glass-panel rounded-2xl p-5 sm:p-8 w-full max-w-xl glow-border relative" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
               onClick={closeScannerModal}
-              className="absolute top-4 right-4 w-8 h-8 rounded-lg border border-white/[0.08] text-sapphire-400 hover:text-white hover:border-white/[0.16] transition-colors"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 w-8 h-8 rounded-lg border border-white/[0.08] text-sapphire-400 hover:text-white hover:border-white/[0.16] transition-colors flex items-center justify-center"
             >
-              <X className="w-4 h-4 mx-auto" />
+              <X className="w-4 h-4" />
             </button>
-            <h3 className="text-xl font-bold text-white mb-2">Scan Digital Card</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-2">Scan Digital Card</h3>
             <p className="text-sm text-sapphire-400 mb-4">Scan a Vynco QR to open that profile directly.</p>
 
-            <div className="rounded-2xl border border-white/[0.08] bg-sapphire-900/50 p-3 mb-4">
+            <div className="rounded-2xl border border-white/[0.08] bg-sapphire-900/50 p-2 sm:p-3 mb-4">
               <video
                 id="dashboard-qr-video"
-                className="w-full aspect-video rounded-xl bg-black object-cover"
+                className="w-full aspect-[4/3] sm:aspect-video rounded-xl bg-black object-cover"
                 muted
                 playsInline
               />
@@ -531,7 +650,7 @@ export default function DashboardPage() {
               </div>
             )}
 
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
               <button
                 type="button"
                 onClick={closeScannerModal}
@@ -587,29 +706,29 @@ export default function DashboardPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="absolute -inset-4 rounded-[2rem] bg-gradient-to-br from-cyan-neon/20 via-cyan-dark/10 to-transparent blur-2xl animate-pulse pointer-events-none" />
-              <div className="relative glass-panel rounded-[2rem] p-8 glow-border overflow-hidden">
+              <div className="relative glass-panel rounded-[2rem] p-6 sm:p-8 glow-border overflow-hidden">
                 <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full bg-cyan-neon/10 blur-3xl pointer-events-none" />
 
-                <div className="flex items-start justify-between mb-6">
+                <div className="flex items-start justify-between mb-5 sm:mb-6">
                   <div>
                     <p className="text-cyan-neon text-xs font-semibold uppercase tracking-[0.2em]">Scan Success</p>
-                    <h3 className="text-xl font-bold text-white mt-1">Digital Card</h3>
+                    <h3 className="text-lg sm:text-xl font-bold text-white mt-1">Digital Card</h3>
                   </div>
                   <button
                     type="button"
                     onClick={closeScannedCardModal}
-                    className="relative z-20 w-8 h-8 rounded-lg border border-white/[0.08] text-sapphire-400 hover:text-white hover:border-white/[0.16] transition-colors"
+                    className="relative z-20 w-8 h-8 rounded-lg border border-white/[0.08] text-sapphire-400 hover:text-white hover:border-white/[0.16] transition-colors flex items-center justify-center"
                   >
-                    <X className="w-4 h-4 mx-auto" />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
 
-                <div className="text-center mb-6">
+                <div className="text-center mb-5 sm:mb-6">
                   <motion.div
                     initial={{ scale: 0.82, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ delay: 0.08, duration: 0.3 }}
-                    className="w-24 h-24 rounded-full mx-auto mb-4 bg-gradient-to-br from-sapphire-600 to-sapphire-800 border-2 border-cyan-neon/30 shadow-[0_0_28px_rgba(0,229,255,0.18)] overflow-hidden flex items-center justify-center text-white text-2xl font-bold"
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-full mx-auto mb-4 bg-gradient-to-br from-sapphire-600 to-sapphire-800 border-2 border-cyan-neon/30 shadow-[0_0_28px_rgba(0,229,255,0.18)] overflow-hidden flex items-center justify-center text-white text-xl sm:text-2xl font-bold"
                   >
                     {scannedProfile.photoURL ? (
                       <img src={scannedProfile.photoURL} alt="" className="w-full h-full object-cover" />
@@ -618,13 +737,13 @@ export default function DashboardPage() {
                     )}
                   </motion.div>
 
-                  <h4 className="text-white text-xl font-bold truncate">{scannedProfile.fullName || scannedProfile.name || 'User'}</h4>
+                  <h4 className="text-white text-lg sm:text-xl font-bold truncate">{scannedProfile.fullName || scannedProfile.name || 'User'}</h4>
                   {scannedProfile.username && (
                     <p className="text-cyan-dark text-sm font-medium mt-1">@{scannedProfile.username}</p>
                   )}
                 </div>
 
-                <div className="space-y-2 mb-6">
+                <div className="space-y-2 mb-5 sm:mb-6">
                   {(scannedProfile.jobTitle || scannedProfile.organization || scannedProfile.company) && (
                     <div className="flex items-center gap-3 rounded-xl bg-sapphire-900/40 border border-white/[0.04] px-3 py-2">
                       <Briefcase className="w-4 h-4 text-cyan-neon flex-shrink-0" />
@@ -645,7 +764,7 @@ export default function DashboardPage() {
                   )}
                 </div>
 
-                <div className="flex gap-3">
+                <div className="flex gap-2 sm:gap-3">
                   <button
                     type="button"
                     onClick={() => {
@@ -654,7 +773,7 @@ export default function DashboardPage() {
                       setScanError('');
                       setScanStatus('Initializing scanner...');
                     }}
-                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-sapphire-600 text-sapphire-400 hover:text-white transition-colors"
+                    className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-sapphire-600 text-sapphire-400 hover:text-white transition-colors"
                   >
                     Scan Another
                   </button>
@@ -662,7 +781,7 @@ export default function DashboardPage() {
                     type="button"
                     onClick={handleConnectScannedProfile}
                     disabled={sendingScannedRequest || scannedRequestAlreadySent || scannedProfile.id === user?.uid}
-                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold border border-cyan-neon/30 text-cyan-neon hover:bg-cyan-neon/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-cyan-neon/30 text-cyan-neon hover:bg-cyan-neon/10 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {scannedProfile.id === user?.uid ? (
                       'This is your card'
@@ -681,22 +800,22 @@ export default function DashboardPage() {
 
       {/* Create Post Modal */}
       {showPostModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4" onClick={closePostModal}>
-          <div className="glass-panel rounded-2xl p-8 w-full max-w-lg glow-border relative" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm px-0 sm:px-4" onClick={closePostModal}>
+          <div className="glass-panel rounded-t-2xl sm:rounded-2xl p-5 sm:p-8 w-full sm:max-w-lg glow-border relative safe-bottom" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
               onClick={closePostModal}
-              className="absolute top-4 right-4 w-8 h-8 rounded-lg border border-white/[0.08] text-sapphire-400 hover:text-white hover:border-white/[0.16] transition-colors"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 w-8 h-8 rounded-lg border border-white/[0.08] text-sapphire-400 hover:text-white hover:border-white/[0.16] transition-colors flex items-center justify-center"
             >
-              <X className="w-4 h-4 mx-auto" />
+              <X className="w-4 h-4" />
             </button>
-            <h3 className="text-xl font-bold text-white mb-4">Create a Post</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-4">Create a Post</h3>
             <textarea
               value={newPostContent}
               onChange={(e) => setNewPostContent(e.target.value)}
               placeholder="What's on your mind?"
               rows={4}
-              className="w-full p-4 rounded-xl glass-input text-white placeholder:text-sapphire-500 resize-none mb-4"
+              className="w-full p-3 sm:p-4 rounded-xl glass-input text-white placeholder:text-sapphire-500 resize-none mb-4 text-sm sm:text-base"
             />
             <div className="flex justify-end gap-3">
               <button
@@ -708,7 +827,7 @@ export default function DashboardPage() {
               <button
                 onClick={handleSubmitPost}
                 disabled={posting || !newPostContent.trim()}
-                className="px-6 py-2.5 text-sm font-semibold rounded-xl bg-gradient-to-r from-cyan-dark to-cyan-neon text-sapphire-900 shadow-[0_0_20px_rgba(0,229,255,0.2)] hover:shadow-[0_0_30px_rgba(0,229,255,0.4)] transition-all disabled:opacity-50"
+                className="px-5 sm:px-6 py-2.5 text-sm font-semibold rounded-xl bg-gradient-to-r from-cyan-dark to-cyan-neon text-sapphire-900 shadow-[0_0_20px_rgba(0,229,255,0.2)] hover:shadow-[0_0_30px_rgba(0,229,255,0.4)] transition-all disabled:opacity-50"
               >
                 {posting ? 'Posting...' : 'Post'}
               </button>

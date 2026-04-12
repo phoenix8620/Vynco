@@ -263,8 +263,8 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="section-container py-16">
-        <div className="glass-panel rounded-2xl p-10 text-center">
+      <div className="section-container py-10 sm:py-16">
+        <div className="glass-panel rounded-2xl p-6 sm:p-10 text-center">
           <p className="text-white font-medium">Loading settings...</p>
           <p className="text-sapphire-500 text-sm mt-2">Syncing your account details.</p>
         </div>
@@ -280,40 +280,40 @@ export default function SettingsPage() {
   const cardUrl = formData.username ? `vynco.app/${formData.username}` : 'vynco.app/example';
 
   return (
-    <div className="section-container py-10">
-      <div className="mb-10">
-        <h1 className="text-3xl sm:text-4xl font-bold text-white">Settings</h1>
-        <p className="text-sapphire-400 mt-1">Manage your account, card, and network preferences.</p>
+    <div className="section-container py-6 sm:py-10">
+      <div className="mb-8 sm:mb-10">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">Settings</h1>
+        <p className="text-sapphire-400 mt-1 text-sm sm:text-base">Manage your account, card, and network preferences.</p>
       </div>
 
       {status.message && (
-        <div className={`mb-8 rounded-2xl border px-4 py-3 text-sm ${
-          status.type === 'success'
+        <div className={`mb-6 sm:mb-8 rounded-2xl border px-4 py-3 text-sm ${status.type === 'success'
             ? 'border-cyan-neon/20 bg-cyan-neon/10 text-cyan-neon'
             : 'border-red-500/30 bg-red-500/10 text-red-300'
-        }`}>
+          }`}>
           {status.message}
         </div>
       )}
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1 space-y-6">
-          <div className="glass-panel rounded-2xl p-8 text-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-sapphire-600 to-sapphire-800 rounded-full mx-auto mb-5 flex items-center justify-center text-white font-bold text-2xl border-2 border-cyan-neon/30 shadow-[0_0_20px_rgba(0,229,255,0.1)]">
+      <div className="grid lg:grid-cols-3 gap-6 sm:gap-8">
+        {/* Left sidebar — profile card + quick actions */}
+        <div className="lg:col-span-1 space-y-4 sm:space-y-6">
+          <div className="glass-panel rounded-2xl p-6 sm:p-8 text-center">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-sapphire-600 to-sapphire-800 rounded-full mx-auto mb-4 sm:mb-5 flex items-center justify-center text-white font-bold text-xl sm:text-2xl border-2 border-cyan-neon/30 shadow-[0_0_20px_rgba(0,229,255,0.1)]">
               {profileInitial}
             </div>
-            <h2 className="text-xl font-bold text-white mb-1">{formData.fullName || 'User Name'}</h2>
+            <h2 className="text-lg sm:text-xl font-bold text-white mb-1">{formData.fullName || 'User Name'}</h2>
             <p className="text-sapphire-500 text-sm mb-1">@{formData.username || 'username'}</p>
-            <p className="text-sapphire-600 text-xs mb-5">{formData.company || 'Add your organization'}</p>
-            <p className="text-sapphire-500 text-xs mb-5">{formData.jobTitle || 'Add your job title'}</p>
+            <p className="text-sapphire-600 text-xs mb-4 sm:mb-5">{formData.company || 'Add your organization'}</p>
+            <p className="text-sapphire-500 text-xs mb-4 sm:mb-5">{formData.jobTitle || 'Add your job title'}</p>
 
-            <div className="grid grid-cols-2 gap-4 pt-5 border-t border-white/[0.06]">
+            <div className="grid grid-cols-2 gap-4 pt-4 sm:pt-5 border-t border-white/[0.06]">
               <div className="text-center">
-                <div className="text-xl font-bold text-white">{profile?.connectionsCount || 0}</div>
+                <div className="text-lg sm:text-xl font-bold text-white">{profile?.connectionsCount || 0}</div>
                 <div className="text-xs text-sapphire-500">Connections</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-bold text-white">{profile?.postsCount || 0}</div>
+                <div className="text-lg sm:text-xl font-bold text-white">{profile?.postsCount || 0}</div>
                 <div className="text-xs text-sapphire-500">Posts</div>
               </div>
             </div>
@@ -321,13 +321,14 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={() => scrollToSection(profileSectionRef)}
-              className="w-full mt-6 py-2.5 rounded-xl text-sm font-semibold border border-cyan-neon/20 text-cyan-neon hover:bg-cyan-neon/10 transition-all"
+              className="w-full mt-5 sm:mt-6 py-2.5 rounded-xl text-sm font-semibold border border-cyan-neon/20 text-cyan-neon hover:bg-cyan-neon/10 transition-all"
             >
               Edit Profile
             </button>
           </div>
 
-          <div className="glass-panel rounded-2xl p-6">
+          {/* Quick actions — hidden on mobile, shown on lg */}
+          <div className="hidden lg:block glass-panel rounded-2xl p-6">
             <h3 className="text-sm font-semibold text-sapphire-500 uppercase tracking-wider mb-4">Quick Actions</h3>
             <div className="space-y-3">
               <button
@@ -369,22 +370,23 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="lg:col-span-2 space-y-8">
-          <div ref={profileSectionRef} className="glass-panel rounded-2xl p-6 sm:p-8">
-            <div className="flex items-start justify-between gap-4 mb-6">
+        {/* Right column — main content */}
+        <div className="lg:col-span-2 space-y-6 sm:space-y-8">
+          <div ref={profileSectionRef} className="glass-panel rounded-2xl p-5 sm:p-6 md:p-8">
+            <div className="flex items-start justify-between gap-3 sm:gap-4 mb-5 sm:mb-6">
               <div>
-                <h3 className="text-xl font-bold text-white">Profile</h3>
-                <p className="text-sapphire-400 text-sm mt-1">Edit the details that appear on your card and in your network.</p>
+                <h3 className="text-lg sm:text-xl font-bold text-white">Profile</h3>
+                <p className="text-sapphire-400 text-xs sm:text-sm mt-1">Edit the details that appear on your card and in your network.</p>
               </div>
-              <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-cyan-neon bg-cyan-neon/[0.08] border border-cyan-neon/15 rounded-full px-3 py-1.5">
+              <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-cyan-neon bg-cyan-neon/[0.08] border border-cyan-neon/15 rounded-full px-3 py-1.5 flex-shrink-0">
                 <Sparkles className="w-3.5 h-3.5" /> Live sync enabled
               </div>
             </div>
 
-            <form className="space-y-5" onSubmit={handleSaveProfile}>
-              <div className="grid sm:grid-cols-2 gap-5">
+            <form className="space-y-4 sm:space-y-5" onSubmit={handleSaveProfile}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                 <div>
-                  <label className="text-sapphire-400 text-sm font-medium mb-2 block">Full Name</label>
+                  <label className="text-sapphire-400 text-xs sm:text-sm font-medium mb-2 block">Full Name</label>
                   <Input
                     icon={User}
                     value={formData.fullName}
@@ -395,7 +397,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="text-sapphire-400 text-sm font-medium mb-2 block">Username</label>
+                  <label className="text-sapphire-400 text-xs sm:text-sm font-medium mb-2 block">Username</label>
                   <Input
                     icon={Globe}
                     value={formData.username}
@@ -406,9 +408,9 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                 <div>
-                  <label className="text-sapphire-400 text-sm font-medium mb-2 block">Email Address</label>
+                  <label className="text-sapphire-400 text-xs sm:text-sm font-medium mb-2 block">Email Address</label>
                   <Input
                     icon={Mail}
                     value={formData.email}
@@ -418,7 +420,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="text-sapphire-400 text-sm font-medium mb-2 block">Phone Number</label>
+                  <label className="text-sapphire-400 text-xs sm:text-sm font-medium mb-2 block">Phone Number</label>
                   <Input
                     icon={Phone}
                     value={formData.phone}
@@ -429,7 +431,7 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <label className="text-sapphire-400 text-sm font-medium mb-2 block">Company / College</label>
+                <label className="text-sapphire-400 text-xs sm:text-sm font-medium mb-2 block">Company / College</label>
                 <Input
                   icon={Building2}
                   value={formData.company}
@@ -438,9 +440,9 @@ export default function SettingsPage() {
                 />
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                 <div>
-                  <label className="text-sapphire-400 text-sm font-medium mb-2 block">Job Title</label>
+                  <label className="text-sapphire-400 text-xs sm:text-sm font-medium mb-2 block">Job Title</label>
                   <Input
                     icon={Briefcase}
                     value={formData.jobTitle}
@@ -450,7 +452,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="text-sapphire-400 text-sm font-medium mb-2 block">LinkedIn Profile</label>
+                  <label className="text-sapphire-400 text-xs sm:text-sm font-medium mb-2 block">LinkedIn Profile</label>
                   <Input
                     icon={Link2}
                     value={formData.linkedinProfile}
@@ -461,13 +463,13 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <label className="text-sapphire-400 text-sm font-medium mb-2 block">Bio</label>
+                <label className="text-sapphire-400 text-xs sm:text-sm font-medium mb-2 block">Bio</label>
                 <textarea
                   value={formData.bio}
                   onChange={(e) => setFormData((prev) => ({ ...prev, bio: e.target.value }))}
                   placeholder="Write a short bio for your profile"
                   rows={4}
-                  className="w-full rounded-2xl glass-input px-4 py-3 bg-sapphire-800/40 text-white placeholder:text-sapphire-700 resize-none"
+                  className="w-full rounded-2xl glass-input px-4 py-3 bg-sapphire-800/40 text-white placeholder:text-sapphire-700 resize-none text-sm"
                 />
               </div>
 
@@ -488,22 +490,22 @@ export default function SettingsPage() {
             </form>
           </div>
 
-          <div className="glass-panel rounded-2xl p-6 sm:p-8">
-            <div className="flex items-start justify-between gap-4 mb-6">
+          <div className="glass-panel rounded-2xl p-5 sm:p-6 md:p-8">
+            <div className="flex items-start justify-between gap-3 sm:gap-4 mb-5 sm:mb-6">
               <div>
-                <h3 className="text-xl font-bold text-white">Preferences</h3>
-                <p className="text-sapphire-400 text-sm mt-1">Control notifications and how your profile appears.</p>
+                <h3 className="text-lg sm:text-xl font-bold text-white">Preferences</h3>
+                <p className="text-sapphire-400 text-xs sm:text-sm mt-1">Control notifications and how your profile appears.</p>
               </div>
-              <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-sapphire-400 bg-sapphire-800/50 border border-white/[0.06] rounded-full px-3 py-1.5">
+              <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-sapphire-400 bg-sapphire-800/50 border border-white/[0.06] rounded-full px-3 py-1.5 flex-shrink-0">
                 <Palette className="w-3.5 h-3.5" /> Sapphire Night
               </div>
             </div>
 
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-5 rounded-2xl border border-white/[0.04] hover:bg-white/[0.02] transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-sapphire-700/50 flex items-center justify-center border border-white/[0.04]">
-                    <Bell className="w-5 h-5 text-cyan-dark" />
+              <div className="flex items-center justify-between p-4 sm:p-5 rounded-2xl border border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-sapphire-700/50 flex items-center justify-center border border-white/[0.04]">
+                    <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-dark" />
                   </div>
                   <div>
                     <span className="text-white font-medium block text-sm">Notifications</span>
@@ -513,23 +515,21 @@ export default function SettingsPage() {
 
                 <button
                   type="button"
-                  className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${
-                    notificationsEnabled ? 'bg-cyan-neon' : 'bg-sapphire-700'
-                  }`}
+                  className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${notificationsEnabled ? 'bg-cyan-neon' : 'bg-sapphire-700'
+                    }`}
                   onClick={handleNotificationToggle}
                 >
                   <div
-                    className={`w-5 h-5 bg-white rounded-full absolute top-0.5 shadow-sm transition-transform ${
-                      notificationsEnabled ? 'translate-x-[22px]' : 'translate-x-0.5'
-                    }`}
+                    className={`w-5 h-5 bg-white rounded-full absolute top-0.5 shadow-sm transition-transform ${notificationsEnabled ? 'translate-x-[22px]' : 'translate-x-0.5'
+                      }`}
                   />
                 </button>
               </div>
 
-              <div className="flex items-center justify-between p-5 rounded-2xl border border-white/[0.04] hover:bg-white/[0.02] transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-sapphire-700/50 flex items-center justify-center border border-white/[0.04]">
-                    <Moon className="w-5 h-5 text-cyan-dark" />
+              <div className="flex items-center justify-between p-4 sm:p-5 rounded-2xl border border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-sapphire-700/50 flex items-center justify-center border border-white/[0.04]">
+                    <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-dark" />
                   </div>
                   <div>
                     <span className="text-white font-medium block text-sm">Display</span>
@@ -542,25 +542,25 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div ref={securitySectionRef} className="glass-panel rounded-2xl p-6 sm:p-8">
-            <div className="flex items-start justify-between gap-4 mb-6">
+          <div ref={securitySectionRef} className="glass-panel rounded-2xl p-5 sm:p-6 md:p-8">
+            <div className="flex items-start justify-between gap-3 sm:gap-4 mb-5 sm:mb-6">
               <div>
-                <h3 className="text-xl font-bold text-white">Privacy & Security</h3>
-                <p className="text-sapphire-400 text-sm mt-1">Keep your account protected and your session under control.</p>
+                <h3 className="text-lg sm:text-xl font-bold text-white">Privacy & Security</h3>
+                <p className="text-sapphire-400 text-xs sm:text-sm mt-1">Keep your account protected and your session under control.</p>
               </div>
-              <Shield className="w-5 h-5 text-cyan-neon" />
+              <Shield className="w-5 h-5 text-cyan-neon flex-shrink-0" />
             </div>
 
-            <div className="mb-6 rounded-2xl border border-white/[0.05] bg-sapphire-900/25 p-5">
-              <div className="flex items-start justify-between gap-4 mb-4">
+            <div className="mb-5 sm:mb-6 rounded-2xl border border-white/[0.05] bg-sapphire-900/25 p-4 sm:p-5">
+              <div className="flex items-start justify-between gap-3 sm:gap-4 mb-4">
                 <div>
                   <h4 className="text-sm font-semibold text-white">Phone Number Privacy</h4>
                   <p className="text-xs text-sapphire-500 mt-1">Choose who can see your phone number on your card.</p>
                 </div>
-                <Phone className="w-5 h-5 text-cyan-dark" />
+                <Phone className="w-5 h-5 text-cyan-dark flex-shrink-0" />
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-3">
                 {[
                   { value: 'connection-only', label: 'Connection only', description: 'Visible to your connections' },
                   { value: 'private', label: 'Private', description: 'Only you can see it' },
@@ -572,9 +572,8 @@ export default function SettingsPage() {
                       key={option.value}
                       type="button"
                       onClick={() => handlePhonePrivacyModeChange(option.value)}
-                      className={`rounded-2xl border p-4 text-left transition-all ${
-                        active ? 'border-cyan-neon/30 bg-cyan-neon/10' : 'border-white/[0.05] hover:bg-white/[0.02]'
-                      }`}
+                      className={`rounded-2xl border p-3 sm:p-4 text-left transition-all ${active ? 'border-cyan-neon/30 bg-cyan-neon/10' : 'border-white/[0.05] hover:bg-white/[0.02]'
+                        }`}
                     >
                       <div className="text-sm font-semibold text-white">{option.label}</div>
                       <div className="text-xs text-sapphire-500 mt-1">{option.description}</div>
@@ -583,7 +582,7 @@ export default function SettingsPage() {
                 })}
               </div>
 
-              <div className="mt-4 text-xs text-sapphire-500">
+              <div className="mt-3 sm:mt-4 text-xs text-sapphire-500">
                 {phoneVisibilityMode === 'custom'
                   ? `${phoneVisibilityAllowedIds.length} connection${phoneVisibilityAllowedIds.length === 1 ? '' : 's'} selected`
                   : phoneVisibilityMode === 'private'
@@ -592,21 +591,21 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
               <button
                 type="button"
                 onClick={handlePasswordReset}
                 disabled={passwordResetSending}
-                className="rounded-2xl border border-white/[0.05] px-5 py-4 text-left hover:bg-white/[0.02] transition-colors disabled:opacity-60"
+                className="rounded-2xl border border-white/[0.05] px-4 sm:px-5 py-4 text-left hover:bg-white/[0.02] transition-colors disabled:opacity-60"
               >
                 <div className="text-sm font-semibold text-white">Reset Password</div>
-                <div className="text-xs text-sapphire-500 mt-1">Send a password reset email to {user.email}</div>
+                <div className="text-xs text-sapphire-500 mt-1 break-all">Send a password reset email to {user.email}</div>
                 <div className="mt-3 text-xs font-medium text-cyan-neon">
                   {passwordResetSending ? 'Sending...' : 'Send reset email'}
                 </div>
               </button>
 
-              <div className="rounded-2xl border border-white/[0.05] px-5 py-4">
+              <div className="rounded-2xl border border-white/[0.05] px-4 sm:px-5 py-4">
                 <div className="text-sm font-semibold text-white">Current Card URL</div>
                 <div className="text-xs text-sapphire-500 mt-1 break-all">{cardUrl}</div>
                 <button
@@ -621,84 +620,82 @@ export default function SettingsPage() {
             </div>
           </div>
 
-            {showPhonePrivacyModal && phoneVisibilityMode === 'custom' && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-                <div className="glass-panel w-full max-w-2xl rounded-2xl p-6 sm:p-8">
-                  <div className="flex items-start justify-between gap-4 mb-5">
-                    <div>
-                      <h3 className="text-xl font-bold text-white">Select connections</h3>
-                      <p className="text-sapphire-400 text-sm mt-1">Choose the connections who can see your phone number.</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setShowPhonePrivacyModal(false)}
-                      className="text-sapphire-500 hover:text-white transition-colors"
-                    >
-                      Close
-                    </button>
+          {showPhonePrivacyModal && phoneVisibilityMode === 'custom' && (
+            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm px-0 sm:px-4">
+              <div className="glass-panel w-full sm:max-w-2xl rounded-t-2xl sm:rounded-2xl p-5 sm:p-6 md:p-8 safe-bottom">
+                <div className="flex items-start justify-between gap-3 sm:gap-4 mb-4 sm:mb-5">
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold text-white">Select connections</h3>
+                    <p className="text-sapphire-400 text-xs sm:text-sm mt-1">Choose the connections who can see your phone number.</p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowPhonePrivacyModal(false)}
+                    className="text-sapphire-500 hover:text-white transition-colors p-1"
+                  >
+                    Close
+                  </button>
+                </div>
 
-                  <div className="max-h-[50vh] overflow-y-auto space-y-3 pr-1">
-                    {loadingConnections ? (
-                      <div className="text-sm text-sapphire-500 py-8 text-center">Loading connections...</div>
-                    ) : networkConnections.length === 0 ? (
-                      <div className="text-sm text-sapphire-500 py-8 text-center">You have no connections yet.</div>
-                    ) : (
-                      networkConnections.map((connection) => {
-                        const selected = phoneVisibilityAllowedIds.includes(connection.id);
-                        return (
-                          <button
-                            key={connection.id}
-                            type="button"
-                            onClick={() => toggleAllowedConnection(connection.id)}
-                            className={`w-full flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition-colors ${
-                              selected ? 'border-cyan-neon/30 bg-cyan-neon/10' : 'border-white/[0.05] hover:bg-white/[0.02]'
+                <div className="max-h-[40vh] sm:max-h-[50vh] overflow-y-auto space-y-2 sm:space-y-3 pr-1">
+                  {loadingConnections ? (
+                    <div className="text-sm text-sapphire-500 py-8 text-center">Loading connections...</div>
+                  ) : networkConnections.length === 0 ? (
+                    <div className="text-sm text-sapphire-500 py-8 text-center">You have no connections yet.</div>
+                  ) : (
+                    networkConnections.map((connection) => {
+                      const selected = phoneVisibilityAllowedIds.includes(connection.id);
+                      return (
+                        <button
+                          key={connection.id}
+                          type="button"
+                          onClick={() => toggleAllowedConnection(connection.id)}
+                          className={`w-full flex items-center justify-between rounded-2xl border px-3 sm:px-4 py-2.5 sm:py-3 text-left transition-colors ${selected ? 'border-cyan-neon/30 bg-cyan-neon/10' : 'border-white/[0.05] hover:bg-white/[0.02]'
                             }`}
-                          >
-                            <div className="min-w-0">
-                              <div className="text-sm font-semibold text-white truncate">
-                                {connection.fullName || connection.name || 'Connection'}
-                              </div>
-                              <div className="text-xs text-sapphire-500 truncate">
-                                {connection.organization || connection.company || connection.jobTitle || 'Vynco Member'}
-                              </div>
+                        >
+                          <div className="min-w-0">
+                            <div className="text-sm font-semibold text-white truncate">
+                              {connection.fullName || connection.name || 'Connection'}
                             </div>
-                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 ${
-                              selected ? 'border-cyan-neon bg-cyan-neon' : 'border-sapphire-600'
+                            <div className="text-xs text-sapphire-500 truncate">
+                              {connection.organization || connection.company || connection.jobTitle || 'Vynco Member'}
+                            </div>
+                          </div>
+                          <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 ${selected ? 'border-cyan-neon bg-cyan-neon' : 'border-sapphire-600'
                             }`}>
-                              {selected && <Check className="w-3 h-3 text-sapphire-900" />}
-                            </div>
-                          </button>
-                        );
-                      })
-                    )}
-                  </div>
+                            {selected && <Check className="w-3 h-3 text-sapphire-900" />}
+                          </div>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
 
-                  <div className="flex justify-end gap-3 mt-6">
-                    <button
-                      type="button"
-                      onClick={() => setShowPhonePrivacyModal(false)}
-                      className="px-5 py-2.5 text-sm font-medium rounded-xl text-sapphire-400 hover:text-white transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="button"
-                      onClick={saveCustomPhonePrivacy}
-                      className="px-6 py-2.5 text-sm font-semibold rounded-xl bg-gradient-to-r from-cyan-dark to-cyan-neon text-sapphire-900 shadow-[0_0_20px_rgba(0,229,255,0.2)] hover:shadow-[0_0_30px_rgba(0,229,255,0.4)] transition-all"
-                    >
-                      Save Selection
-                    </button>
-                  </div>
+                <div className="flex justify-end gap-3 mt-5 sm:mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowPhonePrivacyModal(false)}
+                    className="px-5 py-2.5 text-sm font-medium rounded-xl text-sapphire-400 hover:text-white transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={saveCustomPhonePrivacy}
+                    className="px-5 sm:px-6 py-2.5 text-sm font-semibold rounded-xl bg-gradient-to-r from-cyan-dark to-cyan-neon text-sapphire-900 shadow-[0_0_20px_rgba(0,229,255,0.2)] hover:shadow-[0_0_30px_rgba(0,229,255,0.4)] transition-all"
+                  >
+                    Save Selection
+                  </button>
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
           <div>
             <h3 className="text-sm font-semibold text-sapphire-500 uppercase tracking-wider mb-4">Session</h3>
             <button
               onClick={handleSignOut}
-              className="w-full glass-panel rounded-2xl p-5 flex items-center justify-center gap-3 text-red-400 font-semibold hover:bg-red-500/[0.05] hover:border-red-500/20 transition-all"
+              className="w-full glass-panel rounded-2xl p-4 sm:p-5 flex items-center justify-center gap-3 text-red-400 font-semibold hover:bg-red-500/[0.05] hover:border-red-500/20 transition-all"
             >
               <LogOut className="w-5 h-5" />
               Sign Out
