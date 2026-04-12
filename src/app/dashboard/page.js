@@ -5,17 +5,26 @@ import { useAuth } from '@/context/AuthContext';
 import { FAB } from '@/components/ui/FAB';
 import { FeedSkeleton, ProfileSkeleton } from '@/components/ui/Skeleton';
 import { subscribeToPosts, createPost, toggleLike, formatTimestamp } from '@/lib/firestore';
+import { useSearchParams } from 'next/navigation';
 import { QrCode, Mail, Phone, Building2, UserCircle, ThumbsUp, MessageCircle, Share2 } from 'lucide-react';
 import QRCode from 'react-qr-code';
 
 export default function DashboardPage() {
   const { user, profile, loading } = useAuth();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('feed');
   const [feedLoading, setFeedLoading] = useState(true);
   const [posts, setPosts] = useState([]);
   const [showPostModal, setShowPostModal] = useState(false);
   const [newPostContent, setNewPostContent] = useState('');
   const [posting, setPosting] = useState(false);
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'feed' || tab === 'card') {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   // Real-time posts subscription
   useEffect(() => {

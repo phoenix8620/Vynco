@@ -9,6 +9,7 @@ import {
   doc,
   updateDoc,
   deleteDoc,
+  setDoc,
   where,
   serverTimestamp,
   getDoc,
@@ -306,4 +307,41 @@ export function formatTimestamp(timestamp) {
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
   return date.toLocaleDateString();
+}
+
+function normalizeUsername(username) {
+  return username.trim().toLowerCase().replace(/\s+/g, '');
+}
+
+export async function updateUserProfile(uid, updates, previousUsername = null) {
+  const userRef = doc(db, 'users', uid);
+  const nextUsername = updates.username ? normalizeUsername(updates.username) : previousUsername;
+  const profilePayload = {
+    ...updates,
+    ...(updates.username ? { username: nextUsername } : {}),
+    updatedAt: serverTimestamp(),
+  };
+
+  await setDoc(userRef, profilePayload, { merge: true });
+
+  if (nextUsername) {
+    await setDoc(doc(db, 'digital_cards', nextUsername), {
+      uid,
+      name: updates.fullName ?? updates.name ?? '',
+      username: nextUsername,
+      phone: updates.phone ?? null,
+      email: updates.email ?? null,
+      organization: updates.company ?? updates.organization ?? null,
+      photoURL: updates.photoURL ?? null,
+      bio: updates.bio ?? '',
+      socialLinks: updates.socialLinks ?? {},
+      updatedAt: serverTimestamp(),
+    }, { merge: true });
+
+    if (previousUsername && previousUsername !== nextUsername) {
+      await deleteDoc(doc(db, 'digital_cards', previousUsername)).catch(() => {});
+    }
+  }
+
+  return nextUsername;
 }
