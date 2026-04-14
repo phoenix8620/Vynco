@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import QRCode from 'react-qr-code';
 import { motion } from 'framer-motion';
 import { auth } from '@/lib/firebase';
@@ -10,6 +10,8 @@ import { Link as LinkIcon, Download, Copy, Check } from 'lucide-react';
 
 export default function Share() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const showBack = searchParams.get('from') === 'preview';
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -80,20 +82,32 @@ export default function Share() {
           </button>
         </div>
 
-        <div className="flex gap-3">
-          <button 
-            onClick={() => router.push('/preview')}
-            className="flex-1 py-3 px-4 bg-transparent border border-sapphire-600 text-white font-medium rounded-xl hover:bg-white/5 transition-all"
-          >
-            Back
-          </button>
-          <button 
-            onClick={() => router.push('/download')}
-            className="flex-1 py-3 px-4 bg-gradient-to-r from-cyan-dark to-cyan-neon text-sapphire-950 font-bold rounded-xl flex items-center justify-center gap-2"
-          >
-             Get App
-          </button>
-        </div>
+        {showBack ? (
+          <div className="flex gap-3 w-full">
+            <button 
+              onClick={() => router.push('/preview')}
+              className="flex-1 py-3.5 px-4 bg-transparent border border-sapphire-600 text-white font-medium rounded-xl hover:bg-white/5 transition-all"
+            >
+              Back
+            </button>
+            <button 
+              onClick={() => router.push('/download')}
+              className="flex-1 py-3.5 px-4 bg-gradient-to-r from-cyan-dark to-cyan-neon text-sapphire-950 font-bold rounded-xl flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(0,229,255,0.2)]"
+            >
+               Get App
+            </button>
+          </div>
+        ) : (
+          <div className="flex w-full">
+            <button 
+              onClick={() => router.push('/download')}
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-cyan-dark to-cyan-neon text-sapphire-950 font-bold rounded-xl flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(0,229,255,0.2)]"
+            >
+               <Download className="w-5 h-5" />
+               Get Vynco App
+            </button>
+          </div>
+        )}
       </motion.div>
     </div>
   );

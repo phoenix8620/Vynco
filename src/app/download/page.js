@@ -42,10 +42,15 @@ export default function DownloadPage() {
         </div>
 
         <div className="space-y-4">
-          <button className="w-full py-4 px-6 bg-white hover:bg-sapphire-50 text-sapphire-950 font-bold rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl">
+          <a 
+            href="https://play.google.com/store/apps/details?id=com.vynco.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full py-4 px-6 bg-white hover:bg-sapphire-50 text-sapphire-950 font-bold rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl"
+          >
             <Download className="w-5 h-5" />
             Download for Android
-          </button>
+          </a>
           
           <button className="w-full py-4 px-6 bg-transparent border border-sapphire-600 text-sapphire-400 font-medium rounded-2xl transition-all cursor-not-allowed opacity-60 flex items-center justify-center gap-3">
             <Smartphone className="w-5 h-5" />

@@ -175,9 +175,10 @@ export default function VerifyClient() {
 
       if (connectWithId) {
         await createDirectConnection(user.uid, connectWithId);
+        router.push('/preview');
+      } else {
+        router.push('/share');
       }
-
-      router.push('/preview');
     } catch (err) {
       console.error(err);
       if (err?.code === 'auth/invalid-verification-code') {
@@ -279,7 +280,7 @@ export default function VerifyClient() {
               disabled={loading}
               className="w-full mt-6 py-3.5 px-4 bg-gradient-to-r from-cyan-dark to-cyan-neon hover:to-cyan-400 text-sapphire-950 font-bold rounded-xl shadow-[0_0_20px_rgba(0,229,255,0.3)] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
             >
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Verify & Connect'}
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : connectWithId ? 'Verify & Connect' : 'Verify & Build Card'}
             </button>
             <button
               type="button"

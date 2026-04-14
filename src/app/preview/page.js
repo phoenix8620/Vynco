@@ -94,7 +94,7 @@ export default function Preview() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <button 
-            onClick={() => router.push('/share')}
+            onClick={() => router.push('/share?from=preview')}
             className="py-3.5 px-4 bg-sapphire-800 hover:bg-sapphire-700 text-white font-medium rounded-xl border border-sapphire-600 transition-all flex items-center justify-center gap-2"
           >
             <Share2 className="w-4 h-4" />

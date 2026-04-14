@@ -55,8 +55,12 @@ export default function CardPreview() {
     );
   }
 
-  const handleAction = () => {
+  const handleSaveContact = () => {
     router.push(`/verify?connectWith=${userId}`);
+  };
+
+  const handleCreateCard = () => {
+    router.push(`/verify?action=create`);
   };
 
   const getSocials = () => {
@@ -197,7 +201,7 @@ export default function CardPreview() {
           {/* Actions */}
           <div className="space-y-3">
             <button
-              onClick={handleAction}
+              onClick={handleSaveContact}
               className="w-full py-3.5 px-4 bg-gradient-to-r from-cyan-dark to-cyan-neon hover:to-cyan-400 text-sapphire-950 font-bold rounded-xl shadow-[0_0_20px_rgba(0,229,255,0.3)] transition-all flex items-center justify-center gap-2"
             >
               <UserPlus className="w-5 h-5" />
@@ -205,7 +209,7 @@ export default function CardPreview() {
             </button>
 
             <button
-              onClick={handleAction}
+              onClick={handleCreateCard}
               className="w-full py-3.5 px-4 bg-transparent border border-sapphire-600 hover:border-cyan-neon/50 text-white font-medium rounded-xl transition-all flex items-center justify-center gap-2"
             >
               <QrCode className="w-5 h-5 text-cyan-neon" />
