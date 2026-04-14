@@ -21,85 +21,88 @@ export async function fetchUserById(userId) {
   return { id: snap.id, ...snap.data() };
 }
 
-// ─── Connection Requests ────────────────────────────────
-
-export async function sendConnectionRequest({ senderId, senderName, senderProfileImageUrl, receiverId, receiverName, receiverProfileImageUrl, message }) {
-  // Prevent duplicate requests
-  const existingQ = query(
-    collection(db, 'connection_requests'),
-    where('senderId', '==', senderId),
-    where('receiverId', '==', receiverId)
-  );
-  const existingSnap = await getDocs(existingQ);
+export async function ensureUserExists({ uid, name, phone, photoURL }) {
+  if (!uid) return;
+  const userRef = doc(db, 'users', uid);
+  const snap = await getDoc(userRef);
   
-  if (!existingSnap.empty) {
-    return existingSnap.docs[0].id;
+  if (!snap.exists()) {
+    // Standard schema fallback for new users
+    const { setDoc } = await import('firebase/firestore');
+    await setDoc(userRef, {
+      uid,
+      name: name || "Unknown User",
+      fullName: name || "Unknown User",
+      phone: phone || null,
+      photoURL: photoURL || null,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
   }
+}
 
-  const docRef = await addDoc(collection(db, 'connection_requests'), {
-    senderId,
-    senderName,
-    senderProfileImageUrl: senderProfileImageUrl || null,
-    receiverId,
-    receiverName,
-    receiverProfileImageUrl: receiverProfileImageUrl || null,
-    message: message || "Hi! I'd like to connect with you.",
-    status: 'accepted',
-    respondedAt: serverTimestamp(),
+// ─── Direct Connections ──────────────────────────────────
+
+export async function createDirectConnection(user1Id, user2Id) {
+  // Prevent duplicates
+  const existingQ = query(
+    collection(db, 'connections'),
+    where('users', 'array-contains', user1Id)
+  );
+  const snap = await getDocs(existingQ);
+  const exists = snap.docs.some(doc => {
+    const arr = doc.data().users || [];
+    return arr.includes(user2Id);
+  });
+  
+  if (exists) return snap.docs.find(doc => doc.data().users.includes(user2Id)).id;
+
+  const docRef = await addDoc(collection(db, 'connections'), {
+    users: [user1Id, user2Id],
     createdAt: serverTimestamp(),
   });
   
   return docRef.id;
 }
 
-export function subscribeToRecentConnections(userId, callback) {
-  const qSent = query(
-    collection(db, 'connection_requests'),
-    where('senderId', '==', userId)
-  );
-  
-  const qRecv = query(
-    collection(db, 'connection_requests'),
-    where('receiverId', '==', userId)
+export function subscribeToPopulatedConnections(userId, callback) {
+  const q = query(
+    collection(db, 'connections'),
+    where('users', 'array-contains', userId)
   );
 
-  let sentDocs = [];
-  let recvDocs = [];
+  return onSnapshot(q, async (snap) => {
+    const connections = [];
+    const userCache = new Map(); // cache to minimize duplicate reads
 
-  const updateCallback = () => {
-    // Merge, sort desc by createdAt, limit 5
-    const combined = [...sentDocs, ...recvDocs];
-    combined.sort((a, b) => {
+    for (const d of snap.docs) {
+      const data = d.data();
+      const otherUserId = data.users?.find(id => id !== userId);
+      let otherUser = null;
+
+      if (otherUserId) {
+        if (!userCache.has(otherUserId)) {
+          // Fetch raw user data
+          const uData = await fetchUserById(otherUserId);
+          userCache.set(otherUserId, uData);
+        }
+        otherUser = userCache.get(otherUserId);
+      }
+
+      connections.push({
+        id: d.id,
+        ...data,
+        otherUser, // Attached so preview can display name/image seamlessly
+      });
+    }
+
+    // Sort by createdAt descending
+    connections.sort((a, b) => {
       const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
       const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
       return timeB - timeA;
     });
-    
-    // Deduplicate by ID just in case
-    const unique = [];
-    const ids = new Set();
-    for (const item of combined) {
-      if (!ids.has(item.id)) {
-        unique.push(item);
-        ids.add(item.id);
-      }
-    }
 
-    callback(unique.slice(0, 5));
-  };
-
-  const unsubSent = onSnapshot(qSent, (snap) => {
-    sentDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    updateCallback();
+    callback(connections.slice(0, 5));
   });
-
-  const unsubRecv = onSnapshot(qRecv, (snap) => {
-    recvDocs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    updateCallback();
-  });
-
-  return () => {
-    unsubSent();
-    unsubRecv();
-  };
 }

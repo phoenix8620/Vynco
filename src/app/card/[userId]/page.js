@@ -44,7 +44,7 @@ export default function CardPreview() {
       <div className="min-h-screen bg-sapphire-950 flex items-center justify-center p-6 text-center">
         <div className="glass-panel p-8 rounded-3xl w-full max-w-sm">
           <p className="text-white mb-4">Profile not found.</p>
-          <button 
+          <button
             onClick={() => router.push('/')}
             className="w-full py-3 bg-white/10 rounded-xl text-white font-medium"
           >
@@ -67,7 +67,7 @@ export default function CardPreview() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-sapphire-700/[0.1] rounded-full blur-[100px]" />
       </div>
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -75,7 +75,7 @@ export default function CardPreview() {
       >
         {/* Banner */}
         <div className="h-32 sm:h-40 bg-gradient-to-tr from-sapphire-800 to-cyan-dark relative">
-           <div className="absolute inset-0 bg-black/20" />
+          <div className="absolute inset-0 bg-black/20" />
         </div>
 
         {/* Content */}
@@ -83,9 +83,9 @@ export default function CardPreview() {
           {/* Avatar */}
           <div className="w-24 h-24 sm:w-28 sm:h-28 mx-auto rounded-full border-4 border-sapphire-900 bg-sapphire-800 overflow-hidden mb-4 relative shadow-[0_0_20px_rgba(0,229,255,0.15)] flex items-center justify-center">
             {profile.photoURL || profile.profileImageUrl ? (
-              <img 
-                src={profile.photoURL || profile.profileImageUrl} 
-                alt={profile.name || profile.fullName} 
+              <img
+                src={profile.photoURL || profile.profileImageUrl}
+                alt={profile.name || profile.fullName}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -98,10 +98,10 @@ export default function CardPreview() {
           <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">
             {profile.name || profile.fullName || "Unknown User"}
           </h1>
-          
+
           {(profile.designation || profile.title || profile.organization || profile.company) && (
             <p className="text-cyan-neon text-sm font-medium mb-4">
-              {profile.designation || profile.title} 
+              {profile.designation || profile.title}
               {(profile.designation || profile.title) && (profile.organization || profile.company) && " @ "}
               {profile.organization || profile.company}
             </p>
@@ -126,12 +126,12 @@ export default function CardPreview() {
               {Object.entries(profile.socialLinks).map(([key, url]) => {
                 if (!url) return null;
                 const Icon = Globe;
-                
+
                 return (
-                  <a 
-                    key={key} 
-                    href={url} 
-                    target="_blank" 
+                  <a
+                    key={key}
+                    href={url}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="w-10 h-10 rounded-full bg-sapphire-800/50 flex items-center justify-center hover:bg-cyan-neon/20 hover:text-cyan-neon transition-all text-sapphire-400"
                   >
@@ -144,7 +144,7 @@ export default function CardPreview() {
 
           {/* Actions */}
           <div className="space-y-3">
-            <button 
+            <button
               onClick={handleAction}
               className="w-full py-3.5 px-4 bg-gradient-to-r from-cyan-dark to-cyan-neon hover:to-cyan-400 text-sapphire-950 font-bold rounded-xl shadow-[0_0_20px_rgba(0,229,255,0.3)] transition-all flex items-center justify-center gap-2"
             >
@@ -152,7 +152,7 @@ export default function CardPreview() {
               Save Contact
             </button>
 
-            <button 
+            <button
               onClick={handleAction}
               className="w-full py-3.5 px-4 bg-transparent border border-sapphire-600 hover:border-cyan-neon/50 text-white font-medium rounded-xl transition-all flex items-center justify-center gap-2"
             >

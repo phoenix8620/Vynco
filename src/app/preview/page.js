@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Share2, Download, UserCircle, CheckCircle2 } from 'lucide-react';
-import { subscribeToRecentConnections } from '@/lib/firestore';
+import { subscribeToPopulatedConnections } from '@/lib/firestore';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
@@ -27,7 +27,7 @@ export default function Preview() {
 
   useEffect(() => {
     if (!user) return;
-    const unsub = subscribeToRecentConnections(user.uid, (data) => {
+    const unsub = subscribeToPopulatedConnections(user.uid, (data) => {
       setConnections(data);
       setLoading(false);
     });
@@ -69,9 +69,8 @@ export default function Preview() {
               <p className="text-center text-sapphire-500 py-4 text-sm font-medium">No recent connections yet.</p>
             ) : (
               connections.map((conn) => {
-                const isSender = conn.senderId === user.uid;
-                const displayName = isSender ? conn.receiverName : conn.senderName;
-                const displayImg = isSender ? conn.receiverProfileImageUrl : conn.senderProfileImageUrl;
+                const displayName = conn.otherUser?.name || conn.otherUser?.fullName;
+                const displayImg = conn.otherUser?.photoURL || conn.otherUser?.profileImageUrl;
 
                 return (
                   <div key={conn.id} className="flex items-center gap-4 p-3 rounded-xl bg-sapphire-900/40 border border-sapphire-800">

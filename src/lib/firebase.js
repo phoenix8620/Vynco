@@ -16,6 +16,7 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 
 if (typeof window !== 'undefined') {
+  auth.useDeviceLanguage();
   setPersistence(auth, browserSessionPersistence).catch((error) => {
     console.error("Error setting session persistence:", error);
   });

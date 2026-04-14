@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Shield, Loader2, Phone } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { RecaptchaVerifier, signInWithPhoneNumber, updateProfile } from 'firebase/auth';
-import { sendConnectionRequest } from '@/lib/firestore';
+import { createDirectConnection, ensureUserExists } from '@/lib/firestore';
 
 export default function VerifyClient() {
   const router = useRouter();
@@ -16,40 +16,131 @@ export default function VerifyClient() {
   const [step, setStep] = useState('phone');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [verifiedPhone, setVerifiedPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
   const [error, setError] = useState('');
   const [confirmationResult, setConfirmationResult] = useState(null);
+  const recaptchaVerifierRef = useRef(null);
 
   useEffect(() => {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        size: 'invisible',
-        callback: () => {},
-      });
-    }
+    return () => {
+      if (recaptchaVerifierRef.current) {
+        try {
+          recaptchaVerifierRef.current.clear();
+        } catch (e) {
+          console.error('Error clearing reCAPTCHA:', e);
+        }
+      }
+      recaptchaVerifierRef.current = null;
+    };
   }, []);
 
-  const handleSendOtp = async (e) => {
-    e.preventDefault();
+  const normalizePhoneNumber = (value) => {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+
+    if (trimmed.startsWith('+')) {
+      const digits = trimmed.replace(/[^\d+]/g, '');
+      return /^\+\d{8,15}$/.test(digits) ? digits : null;
+    }
+
+    const digits = trimmed.replace(/\D/g, '');
+    if (digits.length === 10) return `+1${digits}`;
+    if (digits.length >= 8 && digits.length <= 15) return `+${digits}`;
+    return null;
+  };
+
+  const getFirebaseErrorMessage = (err) => {
+    switch (err?.code) {
+      case 'auth/invalid-phone-number':
+        return 'Enter a valid phone number in international format, or a 10-digit US number.';
+      case 'auth/too-many-requests':
+        return 'Too many OTP requests. Please wait a bit and try again.';
+      case 'auth/quota-exceeded':
+        return 'SMS quota exceeded for this project. Try again later.';
+      case 'auth/captcha-check-failed':
+        return 'reCAPTCHA verification failed. Refresh the page and try again.';
+      case 'auth/code-expired':
+        return 'The code expired. Please resend a new code.';
+      case 'auth/billing-not-enabled':
+        return 'Phone authentication is not enabled. Please contact support to enable it.';
+      case 'auth/invalid-verification-code':
+        return 'The code is incorrect. Please try again.';
+      default:
+        return 'Failed to send or verify the code. Check the phone number and try again.';
+    }
+  };
+
+  const getRecaptchaVerifier = () => {
+    if (!recaptchaVerifierRef.current) {
+      try {
+        recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          size: 'invisible',
+          callback: () => {
+            console.log('reCAPTCHA verified');
+          },
+          'expired-callback': () => {
+            console.log('reCAPTCHA expired');
+          },
+        });
+      } catch (err) {
+        console.error('Failed to initialize reCAPTCHA:', err);
+        return null;
+      }
+    }
+
+    return recaptchaVerifierRef.current;
+  };
+
+  const sendOtp = async () => {
     if (!name.trim() || !phone.trim()) {
       setError('Please fill in both name and phone number.');
+      return;
+    }
+
+    const formattedPhone = normalizePhoneNumber(phone);
+    if (!formattedPhone) {
+      setError('Enter a valid phone number with country code, or a 10-digit US number.');
       return;
     }
 
     setLoading(true);
     setError('');
     try {
-      const formattedPhone = phone.startsWith('+') ? phone : `+1${phone.replace(/\D/g, '')}`;
-      const appVerifier = window.recaptchaVerifier;
+      const appVerifier = getRecaptchaVerifier();
+      if (!appVerifier) {
+        throw new Error('reCAPTCHA failed to initialize. Refresh the page and try again.');
+      }
+
       const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
       setConfirmationResult(confirmation);
+      setVerifiedPhone(formattedPhone);
       setStep('otp');
     } catch (err) {
       console.error(err);
-      setError('Failed to send OTP. Ensure phone format is correct.');
+      setError(getFirebaseErrorMessage(err));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSendOtp = async (e) => {
+    e.preventDefault();
+    await sendOtp();
+  };
+
+  const handleResendOtp = async () => {
+    setResendLoading(true);
+    setError('');
+    setOtp('');
+    setConfirmationResult(null);
+
+    try {
+      await sendOtp();
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -57,6 +148,11 @@ export default function VerifyClient() {
     e.preventDefault();
     if (!otp.trim()) {
       setError('Please enter the OTP.');
+      return;
+    }
+
+    if (!confirmationResult) {
+      setError('No verification session found. Please resend the code.');
       return;
     }
 
@@ -70,22 +166,27 @@ export default function VerifyClient() {
         await updateProfile(user, { displayName: name });
       }
 
+      await ensureUserExists({
+        uid: user.uid,
+        name: name,
+        phone: verifiedPhone || phone,
+        photoURL: user.photoURL
+      });
+
       if (connectWithId) {
-        await sendConnectionRequest({
-          senderId: user.uid,
-          senderName: name,
-          senderProfileImageUrl: user.photoURL,
-          receiverId: connectWithId,
-          receiverName: 'Unknown User',
-          receiverProfileImageUrl: null,
-          message: 'Hi! I scanned your QR code and would like to connect.',
-        });
+        await createDirectConnection(user.uid, connectWithId);
       }
 
       router.push('/preview');
     } catch (err) {
       console.error(err);
-      setError('Invalid OTP. Please try again.');
+      if (err?.code === 'auth/invalid-verification-code') {
+        setError('The code is incorrect. Please try again.');
+      } else if (err?.code === 'auth/code-expired') {
+        setError('The code expired. Please resend a new one.');
+      } else {
+        setError('Failed to verify the code. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -93,7 +194,7 @@ export default function VerifyClient() {
 
   return (
     <div className="min-h-screen bg-sapphire-950 flex md:items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div id="recaptcha-container"></div>
+      <div id="recaptcha-container" style={{ display: 'none' }}></div>
       <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-cyan-neon/[0.05] rounded-full blur-[100px]" />
       </div>
@@ -113,7 +214,7 @@ export default function VerifyClient() {
         <p className="text-sapphire-400 text-sm text-center mb-8">
           {step === 'phone'
             ? 'We need to verify your phone number to securely save this connection.'
-            : `We sent a code to ${phone}`}
+            : `We sent a code to ${verifiedPhone || phone}`}
         </p>
 
         {error && (
@@ -182,9 +283,19 @@ export default function VerifyClient() {
             </button>
             <button
               type="button"
+              onClick={handleResendOtp}
+              disabled={resendLoading || loading}
+              className="w-full py-3 px-4 text-sapphire-400 text-sm font-medium hover:text-white transition-all text-center disabled:opacity-60"
+            >
+              {resendLoading ? 'Resending...' : "Didn't get a code? Resend"}
+            </button>
+            <button
+              type="button"
               onClick={() => {
                 setStep('phone');
                 setOtp('');
+                setConfirmationResult(null);
+                setVerifiedPhone('');
               }}
               className="w-full mt-2 py-3 px-4 text-sapphire-400 text-sm font-medium hover:text-white transition-all text-center"
             >
