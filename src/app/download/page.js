@@ -17,7 +17,7 @@ export default function DownloadPage() {
         className="w-full max-w-lg relative z-10 glass-panel p-8 md:p-10 rounded-[2.5rem] glow-border shadow-2xl mt-12 md:mt-0 text-center"
       >
         <div className="w-20 h-20 bg-gradient-to-br from-cyan-dark to-cyan-neon rounded-[2rem] mx-auto flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(0,229,255,0.3)]">
-          <SmartphoneNfc className="w-10 h-10 text-sapphire-900" />
+          <img src="/logo.png" alt="Vynco Logo" className="w-10 h-10 rounded-xl" />
         </div>
 
         <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
