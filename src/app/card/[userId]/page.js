@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { fetchUserById } from '@/lib/firestore';
 import { motion } from 'framer-motion';
-import { UserPlus, QrCode, MapPin, Globe, Linkedin, Twitter, Instagram } from 'lucide-react';
+import { UserPlus, QrCode, MapPin, Globe } from 'lucide-react';
 
 export default function CardPreview() {
   const { userId } = useParams();
@@ -125,10 +125,7 @@ export default function CardPreview() {
             <div className="flex justify-center gap-3 mb-8">
               {Object.entries(profile.socialLinks).map(([key, url]) => {
                 if (!url) return null;
-                let Icon = Globe;
-                if (key.toLowerCase() === 'linkedin') Icon = Linkedin;
-                if (key.toLowerCase() === 'twitter') Icon = Twitter;
-                if (key.toLowerCase() === 'instagram') Icon = Instagram;
+                const Icon = Globe;
                 
                 return (
                   <a 
