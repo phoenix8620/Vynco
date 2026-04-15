@@ -15,6 +15,7 @@ function ShareContent() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [shareLoading, setShareLoading] = useState(false);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (currentUser) => {
@@ -44,6 +45,31 @@ function ShareContent() {
     navigator.clipboard.writeText(profileUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDirectShare = async () => {
+    const sharePayload = {
+      title: 'My Vynco Card',
+      text: 'Connect with me on Vynco',
+      url: profileUrl,
+    };
+
+    if (navigator.share) {
+      setShareLoading(true);
+      try {
+        await navigator.share(sharePayload);
+      } catch (err) {
+        // AbortError means user canceled share; ignore quietly.
+        if (err?.name !== 'AbortError') {
+          copyToClipboard();
+        }
+      } finally {
+        setShareLoading(false);
+      }
+      return;
+    }
+
+    copyToClipboard();
   };
 
   return (
@@ -81,6 +107,16 @@ function ShareContent() {
             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
           </button>
         </div>
+
+        <button
+          type="button"
+          onClick={handleDirectShare}
+          disabled={shareLoading}
+          className="w-full mb-6 py-3.5 px-4 bg-sapphire-800 hover:bg-sapphire-700 text-white font-medium rounded-xl border border-sapphire-600 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+        >
+          <LinkIcon className="w-4 h-4" />
+          {shareLoading ? 'Opening share...' : 'Direct Share'}
+        </button>
 
         {showBack ? (
           <div className="flex gap-3 w-full">
