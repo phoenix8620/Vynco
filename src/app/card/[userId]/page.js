@@ -22,8 +22,8 @@ export default function CardPreview() {
         } else {
           setProfile(null);
         }
-      } catch (err) {
-        console.error("Error loading profile", err);
+      } catch {
+        setProfile(null);
       } finally {
         setLoading(false);
       }

@@ -40,8 +40,8 @@ export default function VerifyClient() {
       if (recaptchaVerifierRef.current) {
         try {
           recaptchaVerifierRef.current.clear();
-        } catch (e) {
-          console.error('Error clearing reCAPTCHA:', e);
+        } catch {
+          // no-op: recaptcha may already be disposed
         }
       }
       recaptchaVerifierRef.current = null;
@@ -75,6 +75,10 @@ export default function VerifyClient() {
   };
 
   const getFirebaseErrorMessage = (err) => {
+    if (!err?.code && err?.message) {
+      return err.message;
+    }
+
     switch (err?.code) {
       case 'auth/invalid-phone-number':
         return 'Enter a valid phone number in international format, or a 10-digit US number.';
@@ -120,15 +124,10 @@ export default function VerifyClient() {
       try {
         recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
           size: 'invisible',
-          callback: () => {
-            console.log('reCAPTCHA verified');
-          },
-          'expired-callback': () => {
-            console.log('reCAPTCHA expired');
-          },
+          callback: () => {},
+          'expired-callback': () => {},
         });
-      } catch (err) {
-        console.error('Failed to initialize reCAPTCHA:', err);
+      } catch {
         return null;
       }
     }
@@ -162,7 +161,6 @@ export default function VerifyClient() {
       setStep('otp');
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (err) {
-      console.error(err);
       setError(getFirebaseErrorMessage(err));
     } finally {
       setLoading(false);
@@ -238,15 +236,6 @@ export default function VerifyClient() {
       }
     } catch (err) {
       const code = err?.code;
-      if (
-        code !== 'auth/invalid-verification-code' &&
-        code !== 'auth/code-expired' &&
-        code !== 'auth/invalid-verification-id' &&
-        code !== 'auth/session-expired' &&
-        code !== 'auth/missing-verification-code'
-      ) {
-        console.error(err);
-      }
       setRetryCooldown(RETRY_COOLDOWN_SECONDS);
       if (code === 'auth/invalid-verification-code') {
         setOtp('');

@@ -17,9 +17,7 @@ const auth = getAuth(app);
 
 if (typeof window !== 'undefined') {
   auth.useDeviceLanguage();
-  setPersistence(auth, browserSessionPersistence).catch((error) => {
-    console.error("Error setting session persistence:", error);
-  });
+  setPersistence(auth, browserSessionPersistence).catch(() => {});
 }
 
 const db = getFirestore(app);
