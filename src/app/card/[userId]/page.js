@@ -58,7 +58,8 @@ export default function CardPreview() {
   }
 
   const handleSaveContact = () => {
-    router.push(`/verify?connectWith=${userId}`);
+    const displayName = encodeURIComponent(primaryName);
+    router.push(`/verify?connectWith=${userId}&connectWithName=${displayName}`);
   };
 
   const handleCreateCard = () => {
