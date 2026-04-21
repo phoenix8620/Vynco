@@ -3,14 +3,16 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Share2, Download, UserCircle, CheckCircle2 } from 'lucide-react';
-import { subscribeToPopulatedConnections } from '@/lib/firestore';
+import { Share2, UserCircle } from 'lucide-react';
+import QRCode from 'react-qr-code';
+import { subscribeToPopulatedConnections, fetchUserById } from '@/lib/firestore';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
 export default function Preview() {
   const router = useRouter();
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [connections, setConnections] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,6 +29,11 @@ export default function Preview() {
 
   useEffect(() => {
     if (!user) return;
+
+    fetchUserById(user.uid)
+      .then((data) => setProfile(data))
+      .catch(() => setProfile(null));
+
     const unsub = subscribeToPopulatedConnections(user.uid, (data) => {
       setConnections(data);
       setLoading(false);
@@ -42,71 +49,84 @@ export default function Preview() {
     );
   }
 
+  const ownerName = profile?.fullName || profile?.name || user.displayName || 'Your profile';
+  const ownerTitle =
+    profile?.designation ||
+    profile?.title ||
+    profile?.organization ||
+    profile?.company ||
+    user.email ||
+    'Your Vynco identity is now active';
+  const profileUrl = typeof window !== 'undefined' ? `${window.location.origin}/card/${user.uid}` : `https://m.vynco.app/card/${user.uid}`;
+
+  const visibleConnections = connections.slice(0, 4);
+
   return (
-    <div className="min-h-screen bg-sapphire-950 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 relative">
-      {/* Background Orbs */}
-      <div className="absolute top-10 left-10 w-[300px] h-[300px] bg-cyan-neon/[0.05] rounded-full blur-[100px] pointer-events-none" />
-      
+    <div className="min-h-screen bg-sapphire-950 flex flex-col items-center justify-center p-4 sm:p-6">
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
+        className="w-full max-w-[430px] bg-white border border-sapphire-700 rounded-[2.2rem] px-5 sm:px-6 py-6 shadow-[0_28px_70px_rgba(16,18,35,0.14)]"
       >
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-cyan-neon/10 text-cyan-neon mb-4">
-            <CheckCircle2 className="w-8 h-8" />
+        <div className="text-center">
+          <p className="text-[16px] font-semibold text-cyan-neon">Your Vynco card is ready</p>
+
+          <div className="mt-5 mx-auto h-[120px] w-[130px] rounded-3xl bg-[#efedf7] border border-sapphire-700 flex items-center justify-center">
+            <div className="bg-white p-2.5 rounded-xl shadow-sm">
+              <QRCode value={profileUrl} size={74} fgColor="#5b4ce6" bgColor="#ffffff" />
+            </div>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#151826] mb-2">Connected!</h1>
-          <p className="text-sapphire-500 text-sm">
-            Your connection details are now saved securely. If you don't have the application, we've sent a link to download it!
-          </p>
-        </div>
 
-        <div className="glass-panel p-6 rounded-3xl mb-6">
-          <h3 className="text-sm font-semibold text-sapphire-500 uppercase tracking-widest mb-4">Recent Connections</h3>
-          <div className="space-y-4">
-            {connections.length === 0 ? (
-              <p className="text-center text-sapphire-500 py-4 text-sm font-medium">No recent connections yet.</p>
-            ) : (
-              connections.map((conn) => {
-                const displayName = conn.otherUser?.fullName || conn.otherUser?.name;
-                const displayImg = conn.otherUser?.photoURL || conn.otherUser?.profileImageUrl;
+          <h1 className="mt-4 text-[33px] leading-none tracking-[-0.03em] font-semibold text-[#151826]">{ownerName}</h1>
+          <p className="mt-1 text-[14px] text-sapphire-500">{ownerTitle}</p>
 
-                return (
-                  <div key={conn.id} className="flex items-center gap-4 p-3 rounded-xl bg-sapphire-800 border border-sapphire-700">
-                    <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center overflow-hidden shrink-0 border border-sapphire-700">
-                      {displayImg ? (
-                        <img src={displayImg} alt="avatar" className="w-full h-full object-cover" />
-                      ) : (
-                        <UserCircle className="w-6 h-6 text-sapphire-400" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[#1a1f31] font-medium text-sm truncate">{displayName || "Unknown User"}</p>
-                      <p className="text-cyan-neon text-xs">Connected</p>
-                    </div>
-                  </div>
-                )
-              })
-            )}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <button 
             onClick={() => router.push('/share?from=preview')}
-            className="py-3.5 px-4 bg-white hover:bg-sapphire-800 text-[#181c2e] font-medium rounded-xl border border-sapphire-600 transition-all flex items-center justify-center gap-2"
+            className="w-full mt-6 py-4 px-4 bg-gradient-to-r from-cyan-dark to-cyan-neon hover:brightness-105 text-white font-bold rounded-2xl shadow-[0_10px_24px_rgba(91,76,230,0.3)] transition-all flex items-center justify-center gap-2 text-[15px] leading-none"
           >
-            <Share2 className="w-4 h-4" />
-            Share My QR
+            <Share2 className="w-5 h-5" />
+            Share my card now
           </button>
-          <button 
-            onClick={() => router.push('/download')}
-            className="py-3.5 px-4 bg-gradient-to-r from-cyan-dark to-cyan-neon text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2"
-          >
-            <Download className="w-4 h-4" />
-            Download App
-          </button>
+
+          <div className="mt-6 pt-4 border-t border-sapphire-700 text-left">
+            <p className="text-sapphire-500 text-[14px] font-semibold uppercase tracking-[0.08em]">Connected Tonight</p>
+
+            <div className="mt-5 space-y-4">
+              {visibleConnections.length === 0 ? (
+                <p className="text-center text-sapphire-500 py-4 text-sm font-medium">No connections yet.</p>
+              ) : (
+                visibleConnections.map((conn) => {
+                  const displayName = conn.otherUser?.fullName || conn.otherUser?.name || 'Unknown User';
+                  const displayImg = conn.otherUser?.photoURL || conn.otherUser?.profileImageUrl;
+                  const initials = displayName
+                    .split(' ')
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map(part => part[0])
+                    .join('')
+                    .toUpperCase();
+
+                  return (
+                    <div key={conn.id} className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-[#efedf7] flex items-center justify-center overflow-hidden shrink-0 text-cyan-neon font-semibold text-sm">
+                        {displayImg ? (
+                          <img src={displayImg} alt="avatar" className="w-full h-full object-cover" />
+                        ) : initials ? (
+                          initials
+                        ) : (
+                          <UserCircle className="w-5 h-5 text-sapphire-400" />
+                        )}
+                      </div>
+                      <p className="flex-1 min-w-0 truncate text-[#151826] text-[16px] font-medium">{displayName}</p>
+                      <span className="text-[14px] font-semibold text-[#5ca18a]">Saved</span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          <div className="h-24 sm:h-32" />
         </div>
       </motion.div>
     </div>

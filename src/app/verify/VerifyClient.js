@@ -31,7 +31,7 @@ export default function VerifyClient() {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [verifiedPhone, setVerifiedPhone] = useState('');
-  const [otp, setOtp] = useState('');
+  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
@@ -39,6 +39,7 @@ export default function VerifyClient() {
   const [error, setError] = useState('');
   const [confirmationResult, setConfirmationResult] = useState(null);
   const recaptchaVerifierRef = useRef(null);
+  const otpInputRefs = useRef([]);
 
   useEffect(() => {
     return () => {
@@ -182,7 +183,7 @@ export default function VerifyClient() {
 
     setResendLoading(true);
     setError('');
-    setOtp('');
+    setOtpDigits(['', '', '', '', '', '']);
     setConfirmationResult(null);
 
     try {
@@ -200,7 +201,7 @@ export default function VerifyClient() {
       return;
     }
 
-    const otpCode = otp.trim();
+    const otpCode = otpDigits.join('').trim();
 
     if (!otpCode) {
       setError('Please enter the OTP.');
@@ -243,12 +244,81 @@ export default function VerifyClient() {
       const code = err?.code;
       setRetryCooldown(RETRY_COOLDOWN_SECONDS);
       if (code === 'auth/invalid-verification-code') {
-        setOtp('');
+        setOtpDigits(['', '', '', '', '', '']);
       }
       setError(getVerifyErrorMessage(code));
     } finally {
       setLoading(false);
     }
+  };
+
+  const maskedNumber = (verifiedPhone || phone || '').replace(/\s+/g, '');
+  const visibleTail = maskedNumber.slice(-3);
+  const maskedPhoneText = maskedNumber
+    ? `${maskedNumber.slice(0, 7)} • • • ${visibleTail}`
+    : '+91 987 • • • 210';
+
+  const focusOtpInput = (index) => {
+    if (index < 0 || index > 5) return;
+    otpInputRefs.current[index]?.focus();
+  };
+
+  const handleOtpDigitChange = (index, value) => {
+    const clean = value.replace(/\D/g, '');
+    const next = [...otpDigits];
+
+    if (!clean) {
+      next[index] = '';
+      setOtpDigits(next);
+      return;
+    }
+
+    next[index] = clean[clean.length - 1];
+    setOtpDigits(next);
+
+    if (index < 5) {
+      focusOtpInput(index + 1);
+    }
+  };
+
+  const handleOtpKeyDown = (index, event) => {
+    if (event.key === 'Backspace') {
+      if (otpDigits[index]) {
+        const next = [...otpDigits];
+        next[index] = '';
+        setOtpDigits(next);
+      } else if (index > 0) {
+        const next = [...otpDigits];
+        next[index - 1] = '';
+        setOtpDigits(next);
+        focusOtpInput(index - 1);
+      }
+      return;
+    }
+
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      focusOtpInput(index - 1);
+      return;
+    }
+
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      focusOtpInput(index + 1);
+    }
+  };
+
+  const handleOtpPaste = (event) => {
+    const pasted = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (!pasted) return;
+
+    event.preventDefault();
+    const next = ['', '', '', '', '', ''];
+    pasted.split('').forEach((digit, idx) => {
+      next[idx] = digit;
+    });
+    setOtpDigits(next);
+    focusOtpInput(Math.min(pasted.length, 5));
   };
 
   return (
@@ -277,15 +347,15 @@ export default function VerifyClient() {
           </button>
         )}
 
-        <h2 className="mt-4 text-[34px] leading-none tracking-[-0.03em] font-semibold text-[#151826]">
+        <h2 className={`leading-none tracking-[-0.03em] font-semibold text-[#151826] ${step === 'phone' ? 'mt-4 text-[34px]' : 'mt-2 text-[36px] text-center'}`}>
           {step === 'phone' ? (isContactSaveFlow ? `Save ${possessiveName} contact` : 'Create your card') : 'Enter OTP'}
         </h2>
-        <p className="text-sapphire-500 text-[15px] mt-2 mb-7 leading-relaxed">
+        <p className={`text-sapphire-500 text-[15px] mt-2 mb-7 leading-relaxed ${step === 'otp' ? 'text-center' : ''}`}>
           {step === 'phone'
             ? isContactSaveFlow
               ? 'We will also create your own card. Takes 10 seconds.'
               : 'Verify your phone number to create your digital card. Takes 10 seconds.'
-            : `We sent a code to ${verifiedPhone || phone}`}
+            : `Sent to ${maskedPhoneText}`}
         </p>
 
         {error && (
@@ -338,30 +408,26 @@ export default function VerifyClient() {
         ) : (
           <form onSubmit={handleVerifyOtp} className="space-y-5">
             <div>
-              <label className="block text-[16px] font-semibold text-[#44495d] mb-2">6-Digit Code</label>
-              <input
-                type="text"
-                value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="000000"
-                maxLength={6}
-                className="w-full bg-[#f2f1fb] border border-cyan-neon focus:border-cyan-neon focus:ring-2 focus:ring-cyan-neon/20 text-[#2e3160] rounded-2xl px-5 py-4 outline-none transition-all tracking-[0.35em] text-center text-[28px] leading-none font-semibold"
-              />
+              <div className="flex items-center justify-center gap-2.5" onPaste={handleOtpPaste}>
+                {otpDigits.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={(el) => {
+                      otpInputRefs.current[index] = el;
+                    }}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpDigitChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    className={`h-14 w-12 sm:h-16 sm:w-14 text-center text-[36px] leading-none rounded-2xl border outline-none transition-all ${digit ? 'bg-[#f2f1fb] border-cyan-neon text-[#4f43be]' : 'bg-white border-sapphire-600 text-[#7f8499]'} focus:border-cyan-neon focus:ring-2 focus:ring-cyan-neon/20`}
+                  />
+                ))}
+              </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading || retryCooldown > 0}
-              className="w-full py-4 px-4 bg-gradient-to-r from-cyan-dark to-cyan-neon hover:brightness-105 text-white font-bold rounded-2xl shadow-[0_10px_24px_rgba(91,76,230,0.3)] transition-all flex items-center justify-center gap-2 disabled:opacity-70 text-[26px] leading-none"
-            >
-              {loading
-                ? <Loader2 className="w-5 h-5 animate-spin" />
-                : retryCooldown > 0
-                  ? `Retry in ${retryCooldown}s`
-                  : isContactSaveFlow
-                    ? 'Verify & Connect'
-                    : 'Verify & Build Card'}
-            </button>
             <button
               type="button"
               onClick={handleResendOtp}
@@ -371,14 +437,39 @@ export default function VerifyClient() {
               {resendLoading
                 ? 'Resending...'
                 : resendCooldown > 0
-                  ? `Resend in ${formatCountdown(resendCooldown)}`
+                  ? `Resend in ${resendCooldown}s`
                   : "Didn't get a code? Resend"}
             </button>
+
+            <button
+              type="submit"
+              disabled={loading || retryCooldown > 0}
+              className="w-full py-4 px-4 bg-gradient-to-r from-cyan-dark to-cyan-neon hover:brightness-105 text-white font-bold rounded-2xl shadow-[0_10px_24px_rgba(91,76,230,0.3)] transition-all flex items-center justify-center gap-2 disabled:opacity-70 text-[40px] leading-none"
+            >
+              {loading
+                ? <Loader2 className="w-5 h-5 animate-spin" />
+                : retryCooldown > 0
+                  ? `Retry in ${retryCooldown}s`
+                  : isContactSaveFlow
+                    ? 'Verify'
+                    : 'Verify'}
+            </button>
+
+            <div className="pt-5 mt-1 border-t border-sapphire-700">
+              <div className="rounded-2xl bg-[#eeedf7] py-5 px-4 text-center">
+                <p className="text-[15px] font-semibold text-[#4f4a8f]">After verifying you get</p>
+                <p className="text-[15px] text-[#4f4a8f] mt-1">
+                  {isContactSaveFlow ? `✓ ${possessiveName} contact saved` : '✓ Your digital card created'}
+                </p>
+                <p className="text-[15px] text-[#4f4a8f]">✓ Your own QR card, ready to share</p>
+              </div>
+            </div>
+
             <button
               type="button"
               onClick={() => {
                 setStep('phone');
-                setOtp('');
+                setOtpDigits(['', '', '', '', '', '']);
                 setConfirmationResult(null);
                 setVerifiedPhone('');
               }}

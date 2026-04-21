@@ -1,71 +1,143 @@
 "use client";
 
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Smartphone, Download, Star, CheckCircle, SmartphoneNfc } from 'lucide-react';
+import { Download, Smartphone } from 'lucide-react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { subscribeToPopulatedConnections } from '@/lib/firestore';
 
 export default function DownloadPage() {
+  const [totalConnections, setTotalConnections] = useState(0);
+  const [connectionUsers, setConnectionUsers] = useState([]);
+
+  useEffect(() => {
+    let unsubConnections = null;
+
+    const unsubAuth = onAuthStateChanged(auth, (currentUser) => {
+      if (unsubConnections) {
+        unsubConnections();
+        unsubConnections = null;
+      }
+
+      if (!currentUser) {
+        setTotalConnections(0);
+        setConnectionUsers([]);
+        return;
+      }
+
+      unsubConnections = subscribeToPopulatedConnections(currentUser.uid, (data) => {
+        const users = data
+          .map((item) => ({
+            name: item.otherUser?.fullName || item.otherUser?.name,
+            image: item.otherUser?.photoURL || item.otherUser?.profileImageUrl || null,
+          }))
+          .filter((item) => Boolean(item.name));
+
+        setConnectionUsers(users);
+        setTotalConnections(data.length);
+      });
+    });
+
+    return () => {
+      if (unsubConnections) unsubConnections();
+      unsubAuth();
+    };
+  }, []);
+
+  const usersToShow = connectionUsers.slice(0, 3);
+
+  const tonightConnections = useMemo(() => {
+    const tones = [
+      'bg-[#f1eefc] text-[#5b4ce6]',
+      'bg-[#eaf5ee] text-[#3f8d69]',
+      'bg-[#fff0e8] text-[#bb6a3f]',
+    ];
+
+    return usersToShow.map((item, index) => {
+      const name = item.name;
+      const initials = name
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join('')
+        .toUpperCase();
+
+      return {
+        name,
+        image: item.image,
+        initials: initials || 'VC',
+        tone: tones[index % tones.length],
+      };
+    });
+  }, [usersToShow]);
+
+  const displayCount = totalConnections;
+  const moreCount = Math.max(displayCount - tonightConnections.length, 0);
+  const hasConnections = displayCount > 0;
+
   return (
-    <div className="min-h-screen bg-sapphire-950 flex md:items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-cyan-neon/[0.08] rounded-full blur-[100px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#d6dcf7]/70 rounded-full blur-[100px]" />
-      </div>
+    <div className="min-h-screen bg-sapphire-950 flex items-center justify-center p-4 sm:p-6">
 
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-lg relative z-10 glass-panel p-8 md:p-10 rounded-[2.5rem] glow-border shadow-2xl mt-12 md:mt-0 text-center"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-[430px] bg-white border border-sapphire-700 rounded-[2.2rem] px-5 sm:px-6 py-6 shadow-[0_28px_70px_rgba(16,18,35,0.14)]"
       >
-        <div className="w-20 h-20 bg-gradient-to-br from-cyan-dark to-cyan-neon rounded-[2rem] mx-auto flex items-center justify-center mb-6 shadow-[0_10px_35px_rgba(91,76,230,0.28)]">
-          <img src="/logo.png" alt="Vynco Logo" className="w-20 h-20 rounded-xl" />
+        <div className="text-center">
+          <p className="text-[54px] leading-none font-semibold tracking-[-0.04em] text-[#151826]">{displayCount}</p>
+          <p className="mt-1 text-[16px] text-sapphire-500">{hasConnections ? 'people you met tonight' : 'no connections yet'}</p>
         </div>
 
-        <h1 className="text-3xl md:text-4xl font-bold text-[#151826] mb-4">
-          Get the <span className="text-gradient">Vynco App</span>
-        </h1>
-        <p className="text-sapphire-500 text-sm md:text-base mb-8 max-w-sm mx-auto">
-          You've successfully used our web portal. Download the full Android application to manage your professional identity, view offline cards, and chat in realtime.
-        </p>
+        <div className="mt-6 rounded-3xl bg-[#efedf7] border border-sapphire-700 p-5">
+          <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-sapphire-500">Tonight&apos;s Connections</p>
 
-        <div className="bg-sapphire-800 border border-sapphire-700 rounded-2xl p-5 mb-8 text-left space-y-3">
-          {[
-             "Native offline QR rendering",
-             "Realtime chat and messaging alerts",
-             "Deep integrations with NFC cards",
-             "Network graph access"
-          ].map((feat, i) => (
-             <div key={i} className="flex items-center gap-3">
-                <CheckCircle className="w-5 h-5 text-cyan-neon flex-shrink-0" />
-               <span className="text-[#22253a] text-sm">{feat}</span>
-             </div>
-          ))}
+          <div className="mt-4 space-y-4">
+            {hasConnections ? (
+              tonightConnections.map((person) => (
+                <div key={person.name} className="flex items-center gap-3">
+                  <span className={`h-8 w-8 rounded-full text-[13px] font-semibold flex items-center justify-center overflow-hidden ${person.tone}`}>
+                    {person.image ? (
+                      <img src={person.image} alt={person.name} className="w-full h-full object-cover" />
+                    ) : (
+                      person.initials
+                    )}
+                  </span>
+                  <p className="text-[16px] font-medium text-[#171b2c]">{person.name}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-[15px] text-sapphire-500">No connections</p>
+            )}
+          </div>
+
+          {moreCount > 0 && <p className="mt-4 text-[14px] text-sapphire-500">+ {moreCount} more</p>}
         </div>
 
-        <div className="space-y-4">
-          <a 
-            href="https://play.google.com/store/apps/details?id=com.vynco.app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full py-4 px-6 bg-gradient-to-r from-cyan-dark to-cyan-neon hover:brightness-105 text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl"
-          >
-            <Download className="w-5 h-5" />
-            Download for Android
-          </a>
-          
-          <button className="w-full py-4 px-6 bg-white border border-sapphire-600 text-sapphire-500 font-medium rounded-2xl transition-all cursor-not-allowed opacity-70 flex items-center justify-center gap-3">
-            <Smartphone className="w-5 h-5" />
-            iOS Beta Coming Soon
-          </button>
+        <div className="mt-5 rounded-2xl border border-cyan-neon/30 bg-[#efedf7] p-4">
+          <p className="text-[18px] font-semibold text-[#3f3a7a]">Don&apos;t lose the context</p>
+          <p className="text-[14px] text-[#4f4a8f] mt-1 leading-relaxed">
+            Tag, add notes, and set follow-ups in the Vynco app before memory fades.
+          </p>
         </div>
 
-        <div className="mt-8 flex items-center justify-center gap-1 text-cyan-neon">
-          <Star className="w-4 h-4 fill-cyan-neon" />
-          <Star className="w-4 h-4 fill-cyan-neon" />
-          <Star className="w-4 h-4 fill-cyan-neon" />
-          <Star className="w-4 h-4 fill-cyan-neon" />
-          <Star className="w-4 h-4 fill-cyan-neon" />
-          <span className="ml-2 text-sapphire-500 text-xs font-medium uppercase tracking-wider">5.0 Ranked App</span>
-        </div>
+        <a 
+          href="https://play.google.com/store/apps/details?id=com.vynco.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full mt-5 py-4 px-6 bg-gradient-to-r from-cyan-dark to-cyan-neon hover:brightness-105 text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2 shadow-[0_10px_24px_rgba(91,76,230,0.3)] text-[16px]"
+        >
+          <Download className="w-5 h-5" />
+          Download Vynco app
+        </a>
+
+        <button className="w-full mt-3 py-4 px-6 bg-white border border-sapphire-600 text-sapphire-500 font-medium rounded-2xl transition-all cursor-not-allowed opacity-70 flex items-center justify-center gap-3">
+          <Smartphone className="w-5 h-5" />
+          iOS Beta Coming Soon
+        </button>
+
+        <div className="h-20 sm:h-24" />
       </motion.div>
     </div>
   );
