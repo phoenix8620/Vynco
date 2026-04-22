@@ -408,7 +408,7 @@ export default function VerifyClient() {
         ) : (
           <form onSubmit={handleVerifyOtp} className="space-y-4">
             <div>
-              <div className="flex items-center justify-center gap-2.5" onPaste={handleOtpPaste}>
+              <div className="flex items-center justify-center gap-1.5" onPaste={handleOtpPaste}>
                 {otpDigits.map((digit, index) => (
                   <input
                     key={index}
